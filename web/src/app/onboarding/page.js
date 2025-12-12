@@ -62,7 +62,7 @@ export default function Onboarding() {
               borderRadius: 5,
               backgroundColor: "#e0e0e0", // Light grey background track
               "& .MuiLinearProgress-bar": {
-                backgroundColor: CUSTOM_COLOR, // Custom color for the fill
+                backgroundColor: "#2D5A4A", // Custom color for the fill
                 borderRadius: 5,
               },
             }}
