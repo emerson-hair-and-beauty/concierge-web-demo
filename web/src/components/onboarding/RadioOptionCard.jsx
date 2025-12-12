@@ -1,42 +1,71 @@
-import { Box, Icon, Typography } from "@mui/material";
+import { Box, Card, Typography } from "@mui/material";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-export default function RadioOptionCard({ option, isChecked = true }) {
-  console.log(option);
+
+export default function RadioOptionCard({ option, isChecked }) {
   return (
-    <Box
-      variant="outlined"
+    <Card
       sx={{
         display: "flex",
         flexDirection: "row",
-        p: 4,
         alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        width: "80%",
-        border: isChecked ? "1px solid #2D5A4A" : "1px solid grey",
-        borderRadius: "15px",
+        p: { xs: 2, md: 3 },
+        gap: { xs: 2, md: 3 },
+        userSelect: "none",
+        borderRadius: "12px",
+
+        // 1. FIX THE COLOR TRANSITION
         backgroundColor: isChecked ? "#E8F4F0" : "white",
+
+        border: isChecked ? "2px solid #2D5A4A" : "2px solid #e0e0e0",
+
+        WebkitTapHighlightColor: "transparent",
+
+        transition: "background-color 0.2s, border-color 0.2s",
+
+        boxShadow: "none",
+
+        "&:hover": {
+          borderColor: "#2D5A4A",
+          backgroundColor: isChecked ? "#E8F4F0" : "#fafafa",
+        },
       }}
     >
-      <Box>
-        <Icon>{option.icon}</Icon>
+      {/* Icon Section */}
+      <Box sx={{ display: "flex", color: isChecked ? "#2D5A4A" : "grey" }}>
+        {option.icon}
       </Box>
 
-      <Box>
-        <Typography>{option.label}</Typography>
-        <Typography sx={{ color: "grey" }}>{option.description}</Typography>
+      {/* Text Section */}
+      <Box sx={{ flex: 1, textAlign: "left" }}>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            fontWeight: 600,
+            color: isChecked ? "#2D5A4A" : "text.primary",
+          }}
+        >
+          {option.label}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{
+            color: "text.secondary",
+            fontSize: { xs: "0.8rem", sm: "0.875rem" },
+          }}
+        >
+          {option.description}
+        </Typography>
       </Box>
 
-      <Box>
-        <Icon>
-          {isChecked ? (
-            <RadioButtonCheckedIcon sx={{ color: "#2D5A4A" }} />
-          ) : (
-            <RadioButtonUncheckedIcon sx={{ color: "grey" }} />
-          )}
-        </Icon>
+      {/* Radio Button Section */}
+      <Box sx={{ display: "flex" }}>
+        {isChecked ? (
+          <RadioButtonCheckedIcon sx={{ color: "#2D5A4A" }} />
+        ) : (
+          <RadioButtonUncheckedIcon sx={{ color: "grey" }} />
+        )}
       </Box>
-    </Box>
+    </Card>
   );
 }
