@@ -14,7 +14,6 @@ export default function RadioOptionCard({ option, isChecked }) {
         userSelect: "none",
         borderRadius: "12px",
 
-        // 1. FIX THE COLOR TRANSITION
         backgroundColor: isChecked ? "#E8F4F0" : "white",
 
         border: isChecked ? "2px solid #2D5A4A" : "2px solid #e0e0e0",

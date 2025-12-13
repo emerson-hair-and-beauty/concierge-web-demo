@@ -6,12 +6,15 @@ import DamageLevelStep from "@/components/steps/DamageLevelStep";
 
 import React, { useState } from "react";
 import HairTextureStep from "@/components/steps/HairTextureStep";
+import { useRouter } from "next/navigation";
 
 // Define the custom color for easy reuse
 const CUSTOM_COLOR = "#95ABA1";
 
 export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
+
+  const router = useRouter();
 
   const steps = [
     {
@@ -40,6 +43,12 @@ export default function Onboarding() {
   const handleNext = () => {
     if (!isLastStep) {
       setActiveStep((prev) => prev + 1);
+    }
+  };
+
+  const handleComplete = () => {
+    if (isLastStep) {
+      router.push("/routine");
     }
   };
 
@@ -108,7 +117,7 @@ export default function Onboarding() {
         </Button>
 
         <Button
-          onClick={handleNext}
+          onClick={isLastStep ? handleComplete : handleNext}
           variant="contained"
           sx={{
             backgroundColor: CUSTOM_COLOR,
