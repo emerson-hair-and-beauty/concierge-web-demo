@@ -3,6 +3,8 @@
 import { useState } from "react";
 import CustomRoutine from "@/components/custom-routine/CustomRoutine";
 import { DUMMY_DATA } from "../../data/mockRoutine";
+import ProfileSummary from "@/components/routine/ProfileSummary";
+import useOnboardingStore from "@/hooks/useOnboardingStore";
 
 // Helper to parse the unstructured content string
 const parseProductContent = (content) => {
@@ -58,23 +60,25 @@ const TRANSFORMED_ROUTINE = {
 
 export default function Home() {
   const [showRoutine, setShowRoutine] = useState(false);
+  const selections = useOnboardingStore((s) => s.selections) || {};
+
+  const profile = {
+    porosity: "Unknown",
+    texture: selections.hair_texture || "—",
+    density: selections.hair_density || "—",
+    damage: selections.is_damaged || "—",
+    scalp: selections.scalp_condition || "—",
+  };
 
   return (
     <div className="min-h-screen bg-[#FDFBF9] font-sans">
       {showRoutine ? (
         <CustomRoutine routine={TRANSFORMED_ROUTINE} />
       ) : (
-        <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          {/* <RadioOptionCard /> */}
-
-          <p className="mb-8 text-stone-600"></p>
-          <button
-            onClick={() => setShowRoutine(true)}
-            className="px-6 py-3 bg-stone-800 text-white rounded-full hover:bg-stone-700 transition-colors"
-          >
-            Generate My Routine
-          </button>
-        </div>
+        <ProfileSummary
+          profile={profile}
+          onViewRoutine={() => setShowRoutine(true)}
+        />
       )}
     </div>
   );

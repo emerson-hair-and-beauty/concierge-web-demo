@@ -1,12 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import RadioOptionCard from "./RadioOptionCard";
 import { Box } from "@mui/material";
+import useOnboardingStore from "../../hooks/useOnboardingStore";
 
-export default function SingleRadioOnboarding({ options }) {
-  const [selectedIndex, setSelectedIndex] = useState(null);
+// SingleRadioOnboarding now supports optional controlled usage and
+// an optional `stepKey` prop. If `stepKey` is provided, the component
+// will write the selected label into the onboarding store under that key.
+export default function SingleRadioOnboarding({
+  options,
+  stepKey, // optional: key to write into the store (e.g. 'scalp_condition')
+  value: controlledValue, // optional controlled value (label string or null)
+  onChange, // optional change callback receiving (selectedLabel|null)
+}) {
+  const [selectedIndex, setSelectedIndex] = useState(() => {
+    if (controlledValue !== undefined && controlledValue !== null) {
+      const idx = options.findIndex((o) => o.label === controlledValue);
+      return idx >= 0 ? idx : null;
+    }
+    return null;
+  });
+
+  // Keep internal index in sync when controlledValue changes
+  useEffect(() => {
+    if (controlledValue !== undefined) {
+      const idx = options.findIndex((o) => o.label === controlledValue);
+      setSelectedIndex(idx >= 0 ? idx : null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [controlledValue, options]);
 
   const handleOptionClick = (index) => {
-    setSelectedIndex((prevIndex) => (prevIndex === index ? null : index));
+    const newIndex = selectedIndex === index ? null : index;
+    setSelectedIndex(newIndex);
+
+    const selectedLabel = newIndex === null ? null : options[newIndex].label;
+
+    // call provided onChange callback
+    if (onChange) onChange(selectedLabel);
+
+    // If stepKey present, update the global onboarding store directly
+    if (stepKey) {
+      useOnboardingStore.getState().setSelection(stepKey, selectedLabel);
+    }
   };
 
   return (
@@ -17,7 +52,7 @@ export default function SingleRadioOnboarding({ options }) {
         gap: 2,
         justifyContent: "center",
         alignItems: "center",
-        width: "100%", // Ensure container takes full width of parent
+        width: "100%",
       }}
     >
       {options.map((option, index) => (
@@ -25,10 +60,6 @@ export default function SingleRadioOnboarding({ options }) {
           key={index}
           onClick={() => handleOptionClick(index)}
           sx={{
-            // RESPONISVE WIDTH:
-            // xs (mobile): 100% width
-            // sm (tablet): 80% width
-            // md (desktop): 50% width
             width: { xs: "100%", sm: "80%", md: "50%" },
             cursor: "pointer",
           }}

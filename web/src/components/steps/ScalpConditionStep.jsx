@@ -4,6 +4,7 @@ import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutli
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 import { Box } from "@mui/material";
 import SingleRadioOnboarding from "../onboarding/SingleRadioOnboarding";
+import useOnboardingStore from "../../hooks/useOnboardingStore";
 
 export default function ScalpConditionStep() {
   const options = [
@@ -32,7 +33,14 @@ export default function ScalpConditionStep() {
 
   return (
     <Box>
-      <SingleRadioOnboarding options={options} />
+      <SingleRadioOnboarding
+        options={options}
+        stepKey="scalp_condition"
+        onChange={(value) => {
+          console.log("scalp_condition selected:", value);
+          console.log(useOnboardingStore.getState().getSelections());
+        }}
+      />
     </Box>
   );
 }

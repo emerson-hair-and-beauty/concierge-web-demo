@@ -4,6 +4,7 @@ import BalanceOutlinedIcon from "@mui/icons-material/BalanceOutlined"; // Repres
 import DensityMediumOutlinedIcon from "@mui/icons-material/DensityMediumOutlined"; // Represents thickness/high density
 import { Box } from "@mui/material";
 import SingleRadioOnboarding from "../onboarding/SingleRadioOnboarding";
+import useOnboardingStore from "../../hooks/useOnboardingStore";
 
 export default function HairDensityStep() {
   const options = [
@@ -27,7 +28,14 @@ export default function HairDensityStep() {
 
   return (
     <Box>
-      <SingleRadioOnboarding options={options} />
+      <SingleRadioOnboarding
+        options={options}
+        stepKey="hair_density"
+        onChange={(value) => {
+          console.log("hair_density selected:", value);
+          console.log(useOnboardingStore.getState().getSelections());
+        }}
+      />
     </Box>
   );
 }

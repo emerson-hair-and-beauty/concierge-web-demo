@@ -3,6 +3,7 @@ import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutli
 import BrokenImageOutlinedIcon from "@mui/icons-material/BrokenImageOutlined"; // Represents damage/change
 import { Box } from "@mui/material";
 import SingleRadioOnboarding from "../onboarding/SingleRadioOnboarding";
+import useOnboardingStore from "../../hooks/useOnboardingStore";
 
 export default function DamageLevelStep() {
   const options = [
@@ -21,7 +22,14 @@ export default function DamageLevelStep() {
 
   return (
     <Box>
-      <SingleRadioOnboarding options={options} />
+      <SingleRadioOnboarding
+        options={options}
+        stepKey="is_damaged"
+        onChange={(value) => {
+          console.log("is_damaged selected:", value);
+          console.log(useOnboardingStore.getState().getSelections());
+        }}
+      />
     </Box>
   );
 }

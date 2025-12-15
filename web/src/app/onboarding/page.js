@@ -7,6 +7,7 @@ import DamageLevelStep from "@/components/steps/DamageLevelStep";
 import React, { useState } from "react";
 import HairTextureStep from "@/components/steps/HairTextureStep";
 import { useRouter } from "next/navigation";
+import useOnboardingStore from "@/hooks/useOnboardingStore";
 
 // Define the custom color for easy reuse
 const CUSTOM_COLOR = "#95ABA1";
@@ -15,6 +16,21 @@ export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
 
   const router = useRouter();
+
+  // Map active step index -> key used in the onboarding store
+  const STEP_KEYS = [
+    "scalp_condition",
+    "hair_density",
+    "is_damaged",
+    "hair_texture",
+  ];
+
+  // read persisted selections from the zustand store
+  const selections = useOnboardingStore((s) => s.selections) || {};
+
+  // compute whether the current step has a selection
+  const currentStepKey = STEP_KEYS[activeStep];
+  const isSelected = Boolean(currentStepKey && selections[currentStepKey]);
 
   const steps = [
     {
@@ -119,15 +135,16 @@ export default function Onboarding() {
         <Button
           onClick={isLastStep ? handleComplete : handleNext}
           variant="contained"
+          disabled={!isSelected}
           sx={{
-            backgroundColor: CUSTOM_COLOR,
+            backgroundColor: isSelected ? "#426A5B" : CUSTOM_COLOR,
             "&:hover": {
-              backgroundColor: "#7D948A",
+              backgroundColor: isSelected ? "#365746" : "#7D948A",
             },
             ...(isLastStep && {
-              backgroundColor: CUSTOM_COLOR,
+              backgroundColor: isSelected ? "#426A5B" : CUSTOM_COLOR,
               "&:hover": {
-                backgroundColor: "#7D948A",
+                backgroundColor: isSelected ? "#365746" : "#7D948A",
               },
             }),
           }}

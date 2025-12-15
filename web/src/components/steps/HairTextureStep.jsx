@@ -5,6 +5,7 @@ import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined"; // Curly (or sp
 import BlurOnOutlinedIcon from "@mui/icons-material/BlurOnOutlined"; // Coily/Z-pattern
 import { Box } from "@mui/material";
 import SingleRadioOnboarding from "../onboarding/SingleRadioOnboarding";
+import useOnboardingStore from "../../hooks/useOnboardingStore";
 
 export default function HairTextureStep() {
   const options = [
@@ -32,7 +33,14 @@ export default function HairTextureStep() {
 
   return (
     <Box>
-      <SingleRadioOnboarding options={options} />
+      <SingleRadioOnboarding
+        options={options}
+        stepKey="hair_texture"
+        onChange={(value) => {
+          console.log("hair_texture selected:", value);
+          console.log(useOnboardingStore.getState().getSelections());
+        }}
+      />
     </Box>
   );
 }
