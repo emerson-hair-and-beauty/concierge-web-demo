@@ -24,6 +24,7 @@ import CheckIcon from "@mui/icons-material/Check"; // For the checklist
 // Assuming useOnboardingStore is defined elsewhere and returns the profile data.
 // Replace with the actual path if needed.
 import useOnboardingStore from "@/hooks/useOnboardingStore";
+import { typographyStyles } from "../../styles/typographyStyles";
 
 export default function ProfileSummary({
   profile = {},
@@ -98,11 +99,15 @@ export default function ProfileSummary({
           variant="h4"
           component="h1"
           gutterBottom
-          sx={{ fontWeight: 600 }}
+          sx={{ ...typographyStyles, fontWeight: 600 }}
         >
           Your Hair Profile Complete!
         </Typography>
-        <Typography variant="body1" color="text.secondary">
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={typographyStyles}
+        >
           We've analyzed your responses to create your personalized routine
         </Typography>
       </Box>
@@ -122,7 +127,12 @@ export default function ProfileSummary({
           <Typography
             variant="h6"
             align="center"
-            sx={{ mb: 2, color: "primary.main", fontWeight: 600 }}
+            sx={{
+              ...typographyStyles,
+              mb: 2,
+              color: "primary.main",
+              fontWeight: 600,
+            }}
           >
             Your Hair Profile
           </Typography>
@@ -164,10 +174,14 @@ export default function ProfileSummary({
                     variant="caption"
                     color="text.secondary"
                     display="block"
+                    sx={typographyStyles}
                   >
                     {item.label}
                   </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                  <Typography
+                    variant="body1"
+                    sx={{ ...typographyStyles, fontWeight: 500 }}
+                  >
                     {item.value ?? "—"}
                   </Typography>
                 </Box>
@@ -188,7 +202,12 @@ export default function ProfileSummary({
         >
           <Typography
             variant="subtitle1"
-            sx={{ mb: 1, color: "secondary.main", fontWeight: 600 }}
+            sx={{
+              ...typographyStyles,
+              mb: 1,
+              color: "secondary.main",
+              fontWeight: 600,
+            }}
           >
             What's Next?
           </Typography>
@@ -207,6 +226,7 @@ export default function ProfileSummary({
                   primaryTypographyProps={{
                     variant: "body2",
                     color: "text.secondary",
+                    sx: typographyStyles,
                   }}
                 />
               </ListItem>

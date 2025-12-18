@@ -1,6 +1,7 @@
 "use client";
 import ScalpConditionStep from "@/components/steps/ScalpConditionStep";
 import { Box, Button, LinearProgress, Typography } from "@mui/material"; // Imported LinearProgress and Typography
+import { typographyStyles } from "../../styles/typographyStyles";
 import HairDensityStep from "@/components/steps/HairDensityStep";
 import DamageLevelStep from "@/components/steps/DamageLevelStep";
 
@@ -94,9 +95,11 @@ export default function Onboarding() {
           />
         </Box>
         <Box sx={{ minWidth: 35 }}>
-          <Typography variant="body2" color="text.secondary">{`${
-            activeStep + 1
-          }/${totalSteps}`}</Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={typographyStyles}
+          >{`${activeStep + 1}/${totalSteps}`}</Typography>
         </Box>
       </Box>
 

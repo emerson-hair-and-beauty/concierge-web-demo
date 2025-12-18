@@ -2,6 +2,7 @@
 // import RadioOptionCard from "./components/onboarding/RadioOptionCard";
 import { useState } from "react";
 import CustomRoutine from "@/components/custom-routine/CustomRoutine";
+import { typographyStyles } from "../../styles/typographyStyles";
 import { DUMMY_DATA } from "../../data/mockRoutine";
 import ProfileSummary from "@/components/routine/ProfileSummary";
 import useOnboardingStore from "@/hooks/useOnboardingStore";

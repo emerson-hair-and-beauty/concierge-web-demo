@@ -1,4 +1,5 @@
 import { Box, Container, Typography, Button } from "@mui/material";
+import { typographyStyles } from "../../styles/typographyStyles";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import RoutineStep from "./RoutineStep";
 import { useRoutineManager } from "../../hooks/useRoutineManager";
@@ -45,15 +46,21 @@ export default function CustomRoutine({ routine }) {
         <Typography
           variant="h4"
           component="h1"
-          sx={{ fontWeight: 700, color: "#1c1917", mb: 1 }}
+          sx={{ ...typographyStyles, fontWeight: 700, color: "#1c1917", mb: 1 }}
         >
           Your Custom Routine
         </Typography>
-        <Typography variant="body1" sx={{ color: "#5F6D68" }}>
+        <Typography
+          variant="body1"
+          sx={{ ...typographyStyles, color: "#5F6D68" }}
+        >
           Personalized for: {routine.profile || "Your unique hair type"}
         </Typography>
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-          <Typography variant="caption" sx={{ color: "#5F6D68" }}>
+          <Typography
+            variant="caption"
+            sx={{ ...typographyStyles, color: "#5F6D68" }}
+          >
             {completedCount}/{routine.steps.length}
           </Typography>
         </Box>
@@ -80,6 +87,7 @@ export default function CustomRoutine({ routine }) {
           size="large"
           onClick={markAllComplete}
           sx={{
+            ...typographyStyles,
             bgcolor: "#2D5B4B",
             "&:hover": { bgcolor: "#244A3D" },
             borderRadius: 50,

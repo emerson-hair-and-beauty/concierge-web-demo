@@ -1,4 +1,5 @@
 import { Box, Card, Typography } from "@mui/material";
+import { typographyStyles } from "../../styles/typographyStyles";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 
@@ -40,6 +41,7 @@ export default function RadioOptionCard({ option, isChecked }) {
         <Typography
           variant="subtitle1"
           sx={{
+            ...typographyStyles,
             fontWeight: 600,
             color: isChecked ? "#2D5A4A" : "text.primary",
           }}
@@ -49,6 +51,7 @@ export default function RadioOptionCard({ option, isChecked }) {
         <Typography
           variant="body2"
           sx={{
+            ...typographyStyles,
             color: "text.secondary",
             fontSize: { xs: "0.8rem", sm: "0.875rem" },
           }}
