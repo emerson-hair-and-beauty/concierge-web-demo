@@ -3,7 +3,9 @@ import ScalpConditionStep from "@/components/steps/ScalpConditionStep";
 import { Box, Button, LinearProgress, Typography } from "@mui/material"; // Imported LinearProgress and Typography
 import { typographyStyles } from "../../styles/typographyStyles";
 import HairDensityStep from "@/components/steps/HairDensityStep";
+
 import DamageLevelStep from "@/components/steps/DamageLevelStep";
+import PorosityStep from "@/components/steps/PorosityStep";
 
 import React, { useState } from "react";
 import HairTextureStep from "@/components/steps/HairTextureStep";
@@ -12,6 +14,8 @@ import useOnboardingStore from "@/hooks/useOnboardingStore";
 
 // Define the custom color for easy reuse
 const CUSTOM_COLOR = "#95ABA1";
+
+import { calculatePorosityLevel } from "@/utils/porosityScoring";
 
 export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
@@ -22,12 +26,14 @@ export default function Onboarding() {
   const STEP_KEYS = [
     "scalp_condition",
     "hair_density",
+    "hair_porosity",
     "is_damaged",
     "hair_texture",
   ];
 
   // read persisted selections from the zustand store
   const selections = useOnboardingStore((s) => s.selections) || {};
+  const setSelection = useOnboardingStore((s) => s.setSelection);
 
   // compute whether the current step has a selection
   const currentStepKey = STEP_KEYS[activeStep];
@@ -42,7 +48,7 @@ export default function Onboarding() {
       title: "Density",
       component: <HairDensityStep />,
     },
-    // { title: "Porosity", component: <PorosityStep /> },
+    { title: "Porosity", component: <PorosityStep /> },
     { title: "Damage Level", component: <DamageLevelStep /> },
     {
       title: "Hair Texture",
@@ -65,6 +71,12 @@ export default function Onboarding() {
 
   const handleComplete = () => {
     if (isLastStep) {
+        // Calculate porosity level
+      const hairPorosity = selections.hair_porosity;
+      if (hairPorosity) {
+        const level = calculatePorosityLevel(hairPorosity);
+        setSelection("porosity_level", level);
+      }
       router.push("/routine");
     }
   };

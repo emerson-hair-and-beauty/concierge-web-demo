@@ -11,6 +11,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import { alpha, useTheme } from "@mui/material/styles";
+import { calculatePorosityLevel } from "@/utils/porosityScoring";
 
 // Icons
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome"; // Equivalent to Sparkles
@@ -26,6 +27,12 @@ import CheckIcon from "@mui/icons-material/Check"; // For the checklist
 import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { typographyStyles } from "../../styles/typographyStyles";
 
+// Define the custom color for consistency
+const DARK_GREEN = "#2D5A4A";
+const MEDIUM_GREEN = "#426A5B";
+const SAGE_GREEN = "#95ABA1";
+const LIGHT_BG = "#E8F4F0";
+
 export default function ProfileSummary({
   profile = {},
   onViewRoutine = () => {},
@@ -33,24 +40,20 @@ export default function ProfileSummary({
   const theme = useTheme();
   // State is accessed using useOnboardingStore hook
   const selections = useOnboardingStore((s) => s.selections) || {};
+  
+  console.log(selections)
 
-  // Combine profile props (highest priority) with store selections (fallback)
-  const porosity = profile.porosity ?? selections.hair_porosity ?? "Unknown";
-  const texture = profile.texture ?? selections.hair_texture ?? "—";
-  const density = profile.density ?? selections.hair_density ?? "—";
-  // The property name for damage in the store is assumed to be 'is_damaged'
-  const damage = profile.damage ?? selections.is_damaged ?? "—";
-  // The property name for scalp in the store is assumed to be 'scalp_condition'
-  const scalp = profile.scalp ?? selections.scalp_condition ?? "—";
+// // Combine profile props with store selections using your calculator
+// const porosity = profile.porosity ?? calculatePorosityLevel(selections.hair_porosity);
 
-  const items = [
-    { key: "porosity", label: "Porosity", value: porosity, Icon: OpacityIcon },
-    { key: "texture", label: "Texture", value: texture, Icon: WavesIcon },
-    { key: "density", label: "Density", value: density, Icon: PeopleIcon },
-    { key: "damage", label: "Damage Level", value: damage, Icon: FavoriteIcon },
-    { key: "scalp", label: "Scalp Type", value: scalp, Icon: AirIcon },
-  ];
 
+const items = [
+  { key: "porosity", label: "Porosity", value: selections.porosity_level, Icon: OpacityIcon },
+  { key: "texture", label: "Texture", value: selections.hair_texture, Icon: WavesIcon },
+  { key: "density", label: "Density", value: selections.hair_density, Icon: PeopleIcon },
+  { key: "damage", label: "Damage Level", value: selections.is_damaged, Icon: FavoriteIcon },
+  { key: "scalp", label: "Scalp Type", value: selections.scalp_condition, Icon: AirIcon },
+];
   console.log("ProfileSummary items:", items);
 
   return (
@@ -67,9 +70,9 @@ export default function ProfileSummary({
           position: "relative",
           background: `linear-gradient(
                 135deg,
-                rgba(45, 90, 74, 0.1) 0%,
-                #e8f4f0 50%,
-                rgba(201, 107, 78, 0.1) 100%
+                ${alpha(DARK_GREEN, 0.1)} 0%,
+                ${LIGHT_BG} 50%,
+                ${alpha(SAGE_GREEN, 0.2)} 100%
             )`,
           pt: 8,
           pb: 6,
@@ -83,14 +86,14 @@ export default function ProfileSummary({
               width: 80,
               height: 80,
               borderRadius: "50%",
-              bgcolor: alpha(theme.palette.primary.main, 0.2),
+              bgcolor: alpha(DARK_GREEN, 0.2),
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
             <AutoAwesomeIcon
-              sx={{ fontSize: 40, color: theme.palette.primary.main }}
+              sx={{ fontSize: 40, color: DARK_GREEN }}
             />
           </Box>
         </Box>
@@ -99,7 +102,7 @@ export default function ProfileSummary({
           variant="h4"
           component="h1"
           gutterBottom
-          sx={{ ...typographyStyles, fontWeight: 600 }}
+          sx={{ ...typographyStyles, fontWeight: 600, color: DARK_GREEN }}
         >
           Your Hair Profile Complete!
         </Typography>
@@ -130,7 +133,7 @@ export default function ProfileSummary({
             sx={{
               ...typographyStyles,
               mb: 2,
-              color: "primary.main",
+              color: DARK_GREEN,
               fontWeight: 600,
             }}
           >
@@ -147,8 +150,10 @@ export default function ProfileSummary({
                   alignItems: "center",
                   gap: 2,
                   p: 2,
-                  backgroundColor: "#F6FBF9",
+                  backgroundColor: "#FAFAFA",
                   borderRadius: 3,
+                  border: 1,
+                  borderColor: "rgba(0,0,0,0.05)",
                 }}
               >
                 {/* Icon Container */}
@@ -157,7 +162,7 @@ export default function ProfileSummary({
                     width: 40,
                     height: 40,
                     borderRadius: "50%",
-                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    bgcolor: alpha(DARK_GREEN, 0.1),
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -165,11 +170,11 @@ export default function ProfileSummary({
                   }}
                 >
                   {/* Correctly rendering the Icon component with necessary styling */}
-                  <item.Icon sx={{ fontSize: 20, color: "primary.main" }} />
+                  <item.Icon sx={{ fontSize: 20, color: DARK_GREEN }} />
                 </Box>
 
                 {/* Text Info */}
-                <Box sx={{ flex: 1, backgroundColor: "#F6FBF9" }}>
+                <Box sx={{ flex: 1 }}>
                   <Typography
                     variant="caption"
                     color="text.secondary"
@@ -195,9 +200,9 @@ export default function ProfileSummary({
           sx={{
             p: 3,
             borderRadius: 4,
-            bgcolor: alpha(theme.palette.secondary.main, 0.05),
+            bgcolor: alpha(SAGE_GREEN, 0.1),
             border: 1,
-            borderColor: alpha(theme.palette.secondary.main, 0.2),
+            borderColor: alpha(SAGE_GREEN, 0.3),
           }}
         >
           <Typography
@@ -205,7 +210,7 @@ export default function ProfileSummary({
             sx={{
               ...typographyStyles,
               mb: 1,
-              color: "secondary.main",
+              color: DARK_GREEN,
               fontWeight: 600,
             }}
           >
@@ -219,7 +224,7 @@ export default function ProfileSummary({
             ].map((text) => (
               <ListItem key={text} disableGutters sx={{ py: 0.5 }}>
                 <ListItemIcon sx={{ minWidth: 32 }}>
-                  <CheckIcon sx={{ fontSize: 18, color: "secondary.main" }} />
+                  <CheckIcon sx={{ fontSize: 18, color: MEDIUM_GREEN }} />
                 </ListItemIcon>
                 <ListItemText
                   primary={text}
@@ -246,7 +251,10 @@ export default function ProfileSummary({
             fontSize: "1rem",
             textTransform: "none",
             boxShadow: theme.shadows[4],
-            backgroundColor: "#2D5A4A   ",
+            backgroundColor: DARK_GREEN,
+            "&:hover": {
+              backgroundColor: MEDIUM_GREEN,
+            },
           }}
         >
           View My Custom Routine

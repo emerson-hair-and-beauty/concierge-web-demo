@@ -6,6 +6,7 @@ import { typographyStyles } from "../../styles/typographyStyles";
 import { DUMMY_DATA } from "../../data/mockRoutine";
 import ProfileSummary from "@/components/routine/ProfileSummary";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
+import { Container } from "@mui/material";
 
 // Helper to parse the unstructured content string
 const parseProductContent = (content) => {
@@ -72,7 +73,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFBF9] font-sans">
+    <Container>
       {showRoutine ? (
         <CustomRoutine routine={TRANSFORMED_ROUTINE} />
       ) : (
@@ -81,6 +82,6 @@ export default function Home() {
           onViewRoutine={() => setShowRoutine(true)}
         />
       )}
-    </div>
+    </Container>
   );
 }

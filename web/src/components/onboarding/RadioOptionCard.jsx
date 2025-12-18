@@ -14,17 +14,11 @@ export default function RadioOptionCard({ option, isChecked }) {
         gap: { xs: 2, md: 3 },
         userSelect: "none",
         borderRadius: "12px",
-
         backgroundColor: isChecked ? "#E8F4F0" : "white",
-
         border: isChecked ? "2px solid #2D5A4A" : "2px solid #e0e0e0",
-
         WebkitTapHighlightColor: "transparent",
-
         transition: "background-color 0.2s, border-color 0.2s",
-
         boxShadow: "none",
-
         "&:hover": {
           borderColor: "#2D5A4A",
           backgroundColor: isChecked ? "#E8F4F0" : "#fafafa",
@@ -33,7 +27,7 @@ export default function RadioOptionCard({ option, isChecked }) {
     >
       {/* Icon Section */}
       <Box sx={{ display: "flex", color: isChecked ? "#2D5A4A" : "grey" }}>
-        {option.icon}
+        {option.icon ? option.icon : null}
       </Box>
 
       {/* Text Section */}

@@ -2,10 +2,19 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 const initialSelections = {
   scalp_condition: null,
-  hair_porosity: null, // reserved, ignored for now
+  hair_porosity: {
+    q1: null,
+    q2: null,
+    q3: null,
+    q4: null,
+    q5: null,
+    q6: null,
+    q7: null,
+  },
   hair_texture: null,
   hair_density: null,
   is_damaged: null,
+  porosity_level: null,
 };
 
 const useOnboardingStore = create(
