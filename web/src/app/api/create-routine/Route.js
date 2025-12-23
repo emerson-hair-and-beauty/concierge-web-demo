@@ -1,5 +1,14 @@
 import { NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+
+export async function GET() {
+  return NextResponse.json(
+    { error: 'Method not allowed. Use POST.' },
+    { status: 405 }
+  );
+}
+
 export async function POST(request) {
   try {
     const body = await request.json();
