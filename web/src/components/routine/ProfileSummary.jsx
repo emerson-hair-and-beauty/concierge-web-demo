@@ -257,7 +257,7 @@ const items = [
             },
           }}
         >
-          View My Custom Routine
+          Create My Custom Routine
         </Button>
       </Box>
     </Box>
