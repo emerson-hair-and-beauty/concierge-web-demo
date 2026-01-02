@@ -302,7 +302,6 @@ export default function LandingPage() {
         </Container>
       </Box>
 
-      {/* 3. REFINED PATH TO PERFECT HAIR: CAROUSEL SECTION */}
       <Box sx={{ 
         height: "100vh",
         minHeight: "650px",
