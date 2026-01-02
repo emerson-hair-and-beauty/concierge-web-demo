@@ -1,6 +1,6 @@
 "use client";
 import ScalpConditionStep from "@/components/steps/ScalpConditionStep";
-import { Box, Button, LinearProgress, Typography } from "@mui/material"; // Imported LinearProgress and Typography
+import { Box, Button, LinearProgress, Typography, useTheme, useMediaQuery } from "@mui/material";
 import { typographyStyles } from "../../styles/typographyStyles";
 import HairDensityStep from "@/components/steps/HairDensityStep";
 
@@ -11,6 +11,7 @@ import React, { useState } from "react";
 import HairTextureStep from "@/components/steps/HairTextureStep";
 import { useRouter } from "next/navigation";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
+import { useUserData } from "@/hooks/useUserData";
 
 // Define the custom color for easy reuse
 const CUSTOM_COLOR = "#95ABA1";
@@ -19,7 +20,8 @@ import { calculatePorosityLevel } from "@/utils/porosityScoring";
 
 export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
-
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const router = useRouter();
 
   // Map active step index -> key used in the onboarding store
@@ -34,6 +36,8 @@ export default function Onboarding() {
   // read persisted selections from the zustand store
   const selections = useOnboardingStore((s) => s.selections) || {};
   const setSelection = useOnboardingStore((s) => s.setSelection);
+  const saveSummary = useOnboardingStore((s) => s.saveSummary);
+  const { user } = useUserData();
 
   // compute whether the current step has a selection
   const currentStepKey = STEP_KEYS[activeStep];
@@ -71,12 +75,18 @@ export default function Onboarding() {
 
   const handleComplete = () => {
     if (isLastStep) {
-        // Calculate porosity level
+      // Calculate porosity level
       const hairPorosity = selections.hair_porosity;
       if (hairPorosity) {
         const level = calculatePorosityLevel(hairPorosity);
         setSelection("porosity_level", level);
       }
+      
+      // Save summary to Firestore if user is logged in
+      if (user) {
+        saveSummary(user.uid);
+      }
+      
       router.push("/routine");
     }
   };
@@ -88,84 +98,146 @@ export default function Onboarding() {
   };
 
   return (
-    <Box sx={{ width: { xs: "90%", sm: "70%", md: "50%" }, mx: "auto", mt: 5 }}>
-      {/* 1. Linear Progress Bar with Label */}
-      <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-        <Box sx={{ width: "100%", mr: 1 }}>
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: 10,
-              borderRadius: 5,
-              backgroundColor: "#e0e0e0", // Light grey background track
-              "& .MuiLinearProgress-bar": {
-                backgroundColor: "#2D5A4A", // Custom color for the fill
-                borderRadius: 5,
-              },
+    <Box sx={{ 
+      height: ["100vh", "100dvh"],
+      display: "flex",
+      flexDirection: "column",
+      bgcolor: "#FDFCF9",
+      overflow: "hidden",
+      overflowX: "hidden"
+    }}>
+      {/* 1. Fixed Header: Progress Bar */}
+      <Box sx={{ 
+        width: "100%", 
+        px: { xs: 2, sm: 4, md: 8 }, 
+        pt: { xs: 2, md: 4 }, 
+        pb: 1,
+        flexShrink: 0 
+      }}>
+        <Box sx={{ maxWidth: "800px", mx: "auto" }}>
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Box sx={{ flexGrow: 1, mr: 2 }}>
+              <LinearProgress
+                variant="determinate"
+                value={progress}
+                sx={{
+                  height: { xs: 6, md: 8 },
+                  borderRadius: 4,
+                  backgroundColor: "rgba(0,0,0,0.05)",
+                  "& .MuiLinearProgress-bar": {
+                    backgroundColor: "#2D5A4A",
+                    borderRadius: 4,
+                  },
+                }}
+              />
+            </Box>
+            <Box sx={{ minWidth: 40 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ ...typographyStyles, fontWeight: 600, fontSize: "0.85rem" }}
+              >
+                {`${activeStep + 1}/${totalSteps}`}
+              </Typography>
+            </Box>
+          </Box>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              ...typographyStyles, 
+              color: "#2D5A4A", 
+              fontWeight: 700,
+              fontSize: { xs: "1rem", md: "1.25rem" }
             }}
-          />
-        </Box>
-        <Box sx={{ minWidth: 35 }}>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={typographyStyles}
-          >{`${activeStep + 1}/${totalSteps}`}</Typography>
+          >
+            {steps[activeStep].title}
+          </Typography>
         </Box>
       </Box>
 
-      {/* 2. Current Step Component */}
-      {steps[activeStep].component}
+      {/* 2. Scrollable Body: Current Step Component */}
+      <Box sx={{ 
+        flexGrow: 1, 
+        overflowY: "auto", 
+        width: "100%",
+        px: { xs: 2, sm: 4, md: 8 },
+        pb: 4,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        WebkitOverflowScrolling: "touch"
+      }}>
+        <Box sx={{ 
+          width: "100%", 
+          maxWidth: "800px",
+          mt: { xs: 1, md: 2 }
+        }}>
+          {steps[activeStep].component}
+        </Box>
+      </Box>
 
-      {/* 3. Navigation Buttons */}
-      <Box
-        sx={{
+      {/* 3. Anchored Footer: Navigation Buttons */}
+      <Box sx={{ 
+        width: "100%",
+        px: { xs: 2, sm: 4, md: 8 },
+        py: { xs: 2, md: 3 },
+        flexShrink: 0,
+        bgcolor: "#FFF",
+        borderTop: "1px solid rgba(0,0,0,0.05)",
+        boxShadow: "0 -4px 20px rgba(0,0,0,0.02)"
+      }}>
+        <Box sx={{ 
+          maxWidth: "800px", 
+          mx: "auto",
           display: "flex",
           justifyContent: "space-between",
-          mt: 4,
-          width: "100%",
-          mx: "auto",
-        }}
-      >
-        <Button
-          onClick={handleBack}
-          disabled={isFirstStep}
-          variant="outlined"
-          sx={{
-            color: CUSTOM_COLOR,
-            borderColor: CUSTOM_COLOR,
-            "&:hover": {
+          gap: 2
+        }}>
+          <Button
+            onClick={handleBack}
+            disabled={isFirstStep}
+            variant="outlined"
+            size={isMobile ? "medium" : "large"}
+            sx={{
+              minWidth: { xs: "90px", sm: 120 },
+              color: CUSTOM_COLOR,
               borderColor: CUSTOM_COLOR,
-              backgroundColor: `${CUSTOM_COLOR}15`,
-            },
-            "&.Mui-disabled": {
-              borderColor: "rgba(0, 0, 0, 0.12)",
-            },
-          }}
-        >
-          Previous
-        </Button>
+              borderRadius: "12px",
+              textTransform: "none",
+              fontWeight: 600,
+              "&:hover": {
+                borderColor: CUSTOM_COLOR,
+                backgroundColor: `${CUSTOM_COLOR}15`,
+              },
+              "&.Mui-disabled": {
+                borderColor: "rgba(0, 0, 0, 0.05)",
+              },
+            }}
+          >
+            Previous
+          </Button>
 
-        <Button
-          onClick={isLastStep ? handleComplete : handleNext}
-          variant="contained"
-          disabled={!isSelected}
-          sx={{
-            backgroundColor: isSelected ? "#426A5B" : CUSTOM_COLOR,
-            "&:hover": {
-              backgroundColor: isSelected ? "#365746" : "#7D948A",
-            },
-            ...(isLastStep && {
+          <Button
+            onClick={isLastStep ? handleComplete : handleNext}
+            variant="contained"
+            disabled={!isSelected}
+            size={isMobile ? "medium" : "large"}
+            sx={{
+              minWidth: { xs: "140px", sm: 180 },
+              borderRadius: "12px",
+              textTransform: "none",
+              fontWeight: 700,
+              fontSize: { xs: "0.95rem", md: "1rem" },
               backgroundColor: isSelected ? "#426A5B" : CUSTOM_COLOR,
+              boxShadow: isSelected ? "0 4px 12px rgba(66, 106, 91, 0.2)" : "none",
               "&:hover": {
                 backgroundColor: isSelected ? "#365746" : "#7D948A",
               },
-            }),
-          }}
-        >
-          {isLastStep ? "Complete" : "Next"}
-        </Button>
+            }}
+          >
+            {isLastStep ? "Complete Analysis" : "Next Step"}
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

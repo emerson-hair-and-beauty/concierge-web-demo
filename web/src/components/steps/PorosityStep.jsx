@@ -18,7 +18,7 @@ export default function PorosityStep() {
   };
 
   return (
-    <Box sx={{ maxWidth: 600, mx: "auto", py: 4 }}>
+    <Box sx={{ maxWidth: 600, mx: "auto" }}>
       {/* Header section instead of pagination buttons */}
       <Typography
         sx={{
@@ -35,7 +35,7 @@ export default function PorosityStep() {
           ...typographyStyles.caption,
           textAlign: "center",
           color: "text.secondary",
-          mb: 6,
+          mb: 4,
         }}
       >
         Answer the following questions to help us determine your hair's
@@ -60,7 +60,7 @@ export default function PorosityStep() {
                 {questionItem.options.map((option) => {
                   const isChecked = selected === option.value;
                   return (
-                    <Grid item size={{ xs: 4, sm: 4 }} key={option.value}>
+                    <Grid item xs={12} sm={4} key={option.value}>
                       <Card
                         onClick={() =>
                           handleSelect(questionItem.key, option.value)
@@ -73,9 +73,11 @@ export default function PorosityStep() {
                           backgroundColor: isChecked ? "#E8F4F0" : "white",
                           boxShadow: isChecked ? 3 : 1,
                           display: "flex",
-                          flexDirection: "column",
+                          flexDirection: "row", // Horizontal on mobile initially
                           alignItems: "center",
-                          py: 3,
+                          px: 2,
+                          py: 2,
+                          gap: 2,
                           transition: "all 0.2s ease",
                           "&:hover": {
                             borderColor: "#2D5A4A",
@@ -87,8 +89,7 @@ export default function PorosityStep() {
                         <Box
                           sx={{
                             color: isChecked ? "#2D5A4A" : "grey",
-                            mb: 1,
-                            fontSize: 36,
+                            fontSize: 28,
                             display: "flex",
                           }}
                         >
@@ -99,6 +100,8 @@ export default function PorosityStep() {
                             ...typographyStyles.caption,
                             fontWeight: isChecked ? 600 : 400,
                             color: isChecked ? "#2D5A4A" : "text.primary",
+                            fontSize: "0.9rem",
+                            textAlign: "left"
                           }}
                         >
                           {option.label}

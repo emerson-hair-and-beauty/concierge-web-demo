@@ -26,8 +26,34 @@ export default function RadioOptionCard({ option, isChecked }) {
       }}
     >
       {/* Icon Section */}
-      <Box sx={{ display: "flex", color: isChecked ? "#2D5A4A" : "grey" }}>
-        {option.icon ? option.icon : null}
+      <Box sx={{ 
+        display: "flex", 
+        width: 64,
+        height: 64,
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0
+      }}>
+        {option.icon ? (
+          typeof option.icon === 'string' ? (
+            <Box
+              component="img"
+              src={option.icon}
+              alt={option.label}
+              sx={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                mixBlendMode: "multiply", 
+                opacity: isChecked ? 1 : 0.85, 
+                transition: "all 0.3s ease",
+                transform: isChecked ? "scale(1.1)" : "scale(1)",
+              }}
+            />
+          ) : (
+            option.icon
+          )
+        ) : null}
       </Box>
 
       {/* Text Section */}

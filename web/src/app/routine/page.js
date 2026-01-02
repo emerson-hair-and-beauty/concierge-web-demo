@@ -1,35 +1,30 @@
 "use client";
-import ProfileSummary from "@/components/routine/ProfileSummary";
-import useOnboardingStore from "@/hooks/useOnboardingStore";
-import { Container } from "@mui/material";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import useOnboardingStore from "@/hooks/useOnboardingStore";
+import { Box, CircularProgress } from "@mui/material";
 
-export default function Home() {
+export default function RoutineRoot() {
   const router = useRouter();
   const selections = useOnboardingStore((s) => s.selections) || {};
-  const generateRoutine = useOnboardingStore((s) => s.generateRoutine);
+  const { apiRoutine } = selections;
 
-  const handleCreateRoutine = () => {
-    // Start generating in background
-    generateRoutine();
-    // Navigate to result page
-    router.push("/routine/result");
-  };
-
-  const profile = {
-    porosity: selections.porosity_level || "Unknown",
-    texture: selections.hair_texture || "—",
-    density: selections.hair_density || "—",
-    damage: selections.is_damaged || "—",
-    scalp: selections.scalp_condition || "—",
-  };
+  useEffect(() => {
+    if (apiRoutine) {
+      router.replace("/routine/result");
+    } else {
+      router.replace("/routine/summary");
+    }
+  }, [apiRoutine, router]);
 
   return (
-    <Container>
-      <ProfileSummary
-        profile={profile}
-        onViewRoutine={handleCreateRoutine}
-      />
-    </Container>
+    <Box sx={{ 
+      height: "100vh", 
+      display: "flex", 
+      alignItems: "center", 
+      justifyContent: "center" 
+    }}>
+      <CircularProgress sx={{ color: "#2D5A4A" }} />
+    </Box>
   );
 }

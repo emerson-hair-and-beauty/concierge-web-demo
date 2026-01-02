@@ -55,35 +55,67 @@ export default function SingleRadioOnboarding({
         justifyContent: "center",
         alignItems: "center",
         width: "100%",
+        maxWidth: "600px", // Better for readability and containment
+        mx: "auto"
       }}
     >
-      <Box>
-        <Typography sx={{ ...typographyStyles.h2 }}>
+      <Box sx={{ width: "100%", textAlign: "left", mb: 1 }}>
+        <Typography sx={{ 
+          ...typographyStyles.h2,
+          fontSize: { xs: "1.5rem", md: "2rem" },
+          mb: 0.5
+        }}>
           {description.title}
         </Typography>
-        <Typography sx={{ ...typographyStyles.caption, color: "#0009" }}>
+        <Typography sx={{ 
+          ...typographyStyles.caption, 
+          color: "#0009",
+          fontSize: { xs: "0.85rem", md: "1rem" }
+        }}>
           {description.description}
         </Typography>
       </Box>
-      {options.map((option, index) => (
-        <Box
-          key={index}
-          onClick={() => handleOptionClick(index)}
-          sx={{
-            width: { xs: "100%", sm: "80%", md: "50%" },
-            cursor: "pointer",
-          }}
-        >
-          <RadioOptionCard
-            option={option}
-            isChecked={selectedIndex === index}
-          />
-        </Box>
-      ))}
+      
+      <Box sx={{ 
+        width: "100%", 
+        display: "flex", 
+        flexDirection: "column", 
+        gap: 2 
+      }}>
+        {options.map((option, index) => (
+          <Box
+            key={index}
+            onClick={() => handleOptionClick(index)}
+            sx={{
+              width: "100%",
+              cursor: "pointer",
+            }}
+          >
+            <RadioOptionCard
+              option={option}
+              isChecked={selectedIndex === index}
+            />
+          </Box>
+        ))}
+      </Box>
 
       <Chip
         label={description.footnote}
-        sx={{ ...typographyStyles, backgroundColor: "#F2F8F4", px: 2, py: 5 }}
+        sx={{ 
+          ...typographyStyles, 
+          backgroundColor: "#F2F8F4", 
+          mt: 2,
+          px: 2, 
+          py: 1.5,
+          height: "auto",
+          maxWidth: "100%",
+          "& .MuiChip-label": {
+            display: "block",
+            whiteSpace: "normal",
+            textAlign: "center",
+            fontSize: { xs: "0.75rem", md: "0.875rem" }
+          }
+        }}
       />
     </Box>
   );

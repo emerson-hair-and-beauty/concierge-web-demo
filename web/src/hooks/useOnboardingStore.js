@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { db, auth } from "@/config/firebase";
 
 // Helper to parse the unstructured content string
 const parseProductContent = (content) => {
@@ -88,6 +90,74 @@ const useOnboardingStore = create(
 
       getSelections: () => get().selections,
 
+      saveSummary: async (uid) => {
+        if (!uid) return;
+        const { selections } = get();
+        const summaryData = {
+          scalp_condition: selections.scalp_condition,
+          hair_density: selections.hair_density,
+          hair_porosity: selections.hair_porosity,
+          is_damaged: selections.is_damaged,
+          hair_texture: selections.hair_texture,
+          porosity_level: selections.porosity_level,
+          updatedAt: serverTimestamp(),
+        };
+        try {
+          await setDoc(doc(db, "users", uid, "data", "summary"), summaryData);
+          console.log("Summary saved to Firestore");
+        } catch (error) {
+          console.error("Error saving summary:", error);
+        }
+      },
+
+      saveRoutine: async (uid, routine) => {
+        if (!uid || !routine) return;
+        try {
+          await setDoc(doc(db, "users", uid, "data", "routine"), {
+            ...routine,
+            updatedAt: serverTimestamp(),
+          });
+          console.log("Routine saved to Firestore");
+        } catch (error) {
+          console.error("Error saving routine:", error);
+        }
+      },
+
+      syncWithFirebase: async (uid) => {
+        if (!uid) return;
+        try {
+          // Sync Summary
+          const summarySnap = await getDoc(doc(db, "users", uid, "data", "summary"));
+          if (summarySnap.exists()) {
+            const summaryData = summarySnap.data();
+            set((state) => ({
+              selections: {
+                ...state.selections,
+                ...summaryData,
+                updatedAt: summaryData.updatedAt
+              }
+            }));
+            console.log("Summary synced from Firestore");
+          }
+
+          // Sync Routine
+          const routineSnap = await getDoc(doc(db, "users", uid, "data", "routine"));
+          if (routineSnap.exists()) {
+            const routineData = routineSnap.data();
+            set((state) => ({
+              selections: {
+                ...state.selections,
+                apiRoutine: routineData,
+                updatedAt: routineData.updatedAt
+              }
+            }));
+            console.log("Routine synced from Firestore");
+          }
+        } catch (error) {
+          console.error("Error syncing with Firebase:", error);
+        }
+      },
+
       generateRoutine: async () => {
         const { selections } = get();
         if (selections.apiRoutine || selections.isGeneratingRoutine) return;
@@ -97,7 +167,9 @@ const useOnboardingStore = create(
         }));
 
         try {
+          const user = auth.currentUser;
           const payload = {
+            uid: user?.uid || null,
             porosity: selections.porosity_level || "Unknown",
             scalp: selections.scalp_condition || "Normal",
             damage: selections.is_damaged || "No",
@@ -115,12 +187,11 @@ const useOnboardingStore = create(
 
           const data = await response.json();
 
-          if (data && data.result) {
-            const transformed = transformRoutineData(data);
+          if (data && !data.error) {
             set((state) => ({
               selections: {
                 ...state.selections,
-                apiRoutine: transformed,
+                apiRoutine: data, // Server now returns the transformed routine
                 isGeneratingRoutine: false,
               },
             }));
