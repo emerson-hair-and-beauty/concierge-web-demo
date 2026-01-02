@@ -37,7 +37,7 @@ const LIGHT_BG = "#E8F4F0";
 /**
  * SidePagination Indicator Component
  */
-const SidePagination = ({ activeSection, totalSections, onNavigate }) => {
+const SidePagination = ({ activeSection, totalSections, onNavigate, disabled }) => {
   return (
     <Box
       sx={{
@@ -49,21 +49,24 @@ const SidePagination = ({ activeSection, totalSections, onNavigate }) => {
         flexDirection: "column",
         gap: 2,
         zIndex: 1000,
+        opacity: disabled ? 0.3 : 1,
+        pointerEvents: disabled ? "none" : "auto",
+        transition: "opacity 0.3s ease",
       }}
     >
       {[...Array(totalSections)].map((_, i) => (
         <Box
           key={i}
-          onClick={() => onNavigate(i)}
+          onClick={() => !disabled && onNavigate(i)}
           sx={{
             width: activeSection === i ? { xs: 12, md: 16 } : 8,
             height: activeSection === i ? 4 : 8,
             borderRadius: 4,
             bgcolor: activeSection === i ? DARK_GREEN : alpha(DARK_GREEN, 0.2),
-            cursor: "pointer",
+            cursor: disabled ? "default" : "pointer",
             transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             "&:hover": {
-              bgcolor: alpha(DARK_GREEN, 0.5),
+              bgcolor: disabled ? alpha(DARK_GREEN, 0.2) : alpha(DARK_GREEN, 0.5),
             },
           }}
         />
@@ -149,6 +152,7 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         activeSection={activeSection} 
         totalSections={3} 
         onNavigate={scrollToSection} 
+        disabled={!isAuthenticated}
       />
 
       {/* SECTION 1: HEADER */}
@@ -157,7 +161,7 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         data-section-index="0"
         sx={{
           height: "90vh",
-          scrollSnapAlign: "start",
+          scrollSnapAlign: "center",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -225,7 +229,7 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         data-section-index="1"
         sx={{
           height: "90vh",
-          scrollSnapAlign: "start",
+          scrollSnapAlign: "center",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
@@ -288,7 +292,7 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         data-section-index="2"
         sx={{
           height: "90vh",
-          scrollSnapAlign: "start",
+          scrollSnapAlign: "center",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
