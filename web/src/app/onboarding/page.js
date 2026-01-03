@@ -17,6 +17,7 @@ import { useUserData } from "@/hooks/useUserData";
 const CUSTOM_COLOR = "#95ABA1";
 
 import { calculatePorosityLevel } from "@/utils/porosityScoring";
+import { POROSITY_QUESTIONS } from "@/constants/onboardingData";
 
 export default function Onboarding() {
   const [activeStep, setActiveStep] = useState(0);
@@ -39,9 +40,19 @@ export default function Onboarding() {
   const saveSummary = useOnboardingStore((s) => s.saveSummary);
   const { user } = useUserData();
 
+  // Helper to check if the current step is fully answered
+  const isStepComplete = (key, value) => {
+    if (!value) return false;
+    if (key === "hair_porosity") {
+      // Check if all questions in POROSITY_QUESTIONS have an answer in the value object
+      return POROSITY_QUESTIONS.every(q => value[q.key] !== undefined && value[q.key] !== null);
+    }
+    return true; // Other steps are simple selections
+  };
+
   // compute whether the current step has a selection
   const currentStepKey = STEP_KEYS[activeStep];
-  const isSelected = Boolean(currentStepKey && selections[currentStepKey]);
+  const isSelected = isStepComplete(currentStepKey, selections[currentStepKey]);
 
   const steps = [
     {

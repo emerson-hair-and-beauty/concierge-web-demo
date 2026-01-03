@@ -160,7 +160,7 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         className="snap-section"
         data-section-index="0"
         sx={{
-          height: "90vh",
+          height: "100vh",
           scrollSnapAlign: "center",
           display: "flex",
           justifyContent: "center",
@@ -228,7 +228,7 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         className="snap-section"
         data-section-index="1"
         sx={{
-          height: "90vh",
+          height: "100vh",
           scrollSnapAlign: "center",
           display: "flex",
           justifyContent: "center",
@@ -291,7 +291,8 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         className="snap-section"
         data-section-index="2"
         sx={{
-          height: "90vh",
+          //border: '1px solid red',
+          height: "100vh",
           scrollSnapAlign: "center",
           display: "flex",
           justifyContent: "center",

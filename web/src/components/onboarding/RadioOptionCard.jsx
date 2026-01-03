@@ -2,8 +2,12 @@ import { Box, Card, Typography } from "@mui/material";
 import { typographyStyles } from "../../styles/typographyStyles";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import OnboardingIcon from "./OnboardingIcon";
 
 export default function RadioOptionCard({ option, isChecked }) {
+  const isImagePath = typeof option.icon === "string" && (option.icon.startsWith("/") || option.icon.startsWith("http"));
+  const isIconIdentifier = typeof option.icon === "string" && !isImagePath;
+
   return (
     <Card
       sx={{
@@ -34,26 +38,26 @@ export default function RadioOptionCard({ option, isChecked }) {
         justifyContent: "center",
         flexShrink: 0
       }}>
-        {option.icon ? (
-          typeof option.icon === 'string' ? (
-            <Box
-              component="img"
-              src={option.icon}
-              alt={option.label}
-              sx={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                mixBlendMode: "multiply", 
-                opacity: isChecked ? 1 : 0.85, 
-                transition: "all 0.3s ease",
-                transform: isChecked ? "scale(1.1)" : "scale(1)",
-              }}
-            />
-          ) : (
-            option.icon
-          )
-        ) : null}
+        {isImagePath ? (
+          <Box
+            component="img"
+            src={option.icon}
+            alt={option.label}
+            sx={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              mixBlendMode: "multiply", 
+              opacity: isChecked ? 1 : 0.85, 
+              transition: "all 0.3s ease",
+              transform: isChecked ? "scale(1.1)" : "scale(1)",
+            }}
+          />
+        ) : isIconIdentifier ? (
+          <OnboardingIcon type={option.icon} isChecked={isChecked} />
+        ) : (
+          option.icon
+        )}
       </Box>
 
       {/* Text Section */}

@@ -5,6 +5,7 @@ import {typographyStyles }from "@/styles/typographyStyles";
 
 import { POROSITY_QUESTIONS } from "@/constants/onboardingData";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
+import OnboardingIcon from "../onboarding/OnboardingIcon";
 
 export default function PorosityStep() {
   const porosity = useOnboardingStore((s) => s.selections.hair_porosity);
@@ -88,12 +89,15 @@ export default function PorosityStep() {
                       >
                         <Box
                           sx={{
-                            color: isChecked ? "#2D5A4A" : "grey",
-                            fontSize: 28,
+                            width: 48,
+                            height: 48,
                             display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0
                           }}
                         >
-                          {option.icon}
+                          <OnboardingIcon type={option.icon} isChecked={isChecked} />
                         </Box>
                         <Typography
                           sx={{
