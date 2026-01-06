@@ -170,21 +170,6 @@ export default function ProfileSummary({ onViewRoutine = () => {} }) {
         }}
       >
         <Box sx={{ maxWidth: 420, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-          {isAuthenticated && (
-            <Button
-              onClick={handleLogout}
-              sx={{
-                position: "absolute",
-                top: 24,
-                right: 24,
-                color: DARK_GREEN,
-                fontWeight: 600,
-                textTransform: "none",
-              }}
-            >
-              Logout
-            </Button>
-          )}
 
           <Box sx={{ width: 64, height: 64, borderRadius: "50%", bgcolor: alpha(DARK_GREEN, 0.1), display: "flex", alignItems: "center", justifyContent: "center", mb: 3 }}>
             <AutoAwesomeIcon sx={{ fontSize: 32, color: DARK_GREEN }} />
