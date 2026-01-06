@@ -13,7 +13,6 @@ import ListItemText from "@mui/material/ListItemText";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 
-// Icons
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import OpacityIcon from "@mui/icons-material/Opacity";
 import WavesIcon from "@mui/icons-material/Waves";
