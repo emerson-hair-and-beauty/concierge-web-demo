@@ -44,8 +44,29 @@ This is the best way to handle user testing long-term:
     - **Environment Variables**: Add any variables from your `.env` file (like Firebase keys).
 5.  Click **Deploy**.
 
+## Handling the `stable-version` Branch
+
+Since you want a dedicated testing URL for the `stable-version` branch while keeping `main` as your production site:
+
+### 1. The Automatic Way (Preview URLs)
+Vercel automatically creates a unique URL for every branch.
+- Push your branch: `git push origin stable-version`
+- Go to the Vercel Dashboard for your project.
+- You will see a new "Preview Deployment" for that branch.
+- The URL will look like `concierge-web-demo-git-stable-version-yourname.vercel.app`. This URL will update every time you push to that branch.
+
+### 2. The Permanent Way (Custom Testing Domain)
+If you want a cleaner, permanent URL like `testing.yourdomain.com` or `concierge-test.vercel.app`:
+1. Go to **Project Settings > Domains**.
+2. Add a new domain/subdomain (e.g., `test.yourdomain.com`).
+3. When prompted, select **"Git Branch"** and enter `stable-version`.
+4. Now, that specific URL will *always* point to the latest code on your `stable-version` branch, while your main URL stays on `main`.
+
+> [!TIP]
+> This is perfect for user testing because you can give out one "Testing Link" that never changes, even as you continue to push updates to the `stable-version` branch!
+
 > [!IMPORTANT]
 > Since your project structure has the Next.js app inside a `web` subdirectory, make sure the **Root Directory** in Vercel is set to `web`.
 
 ## Environment Variables
-Don't forget to add your Firebase configuration and any other sensitive keys in the Vercel Dashboard under **Project Settings > Environment Variables**.
+Don't forget to add your Firebase configuration and any other sensitive keys in the Vercel Dashboard under **Project Settings > Environment Variables**. Ensure they are checked for "Preview" and "Development" environments as well.
