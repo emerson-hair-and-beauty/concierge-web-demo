@@ -21,6 +21,8 @@ const parseProductContent = (content) => {
 };
 
 // Helper to transform the API response (copied from store for consistency)
+// NOTE: This function explicitly picks only the necessary fields, 
+// which ensures that 'thinking' or 'reasoning' data is NOT saved to Firestore.
 const transformRoutineData = (data) => {
   if (!data || !data.result) return null;
   return {
@@ -52,71 +54,35 @@ export async function POST(request) {
     const body = await request.json();
     const { uid, ...payload } = body;
     
-    console.log("Proxying request to Orchestrator:", payload);
+    const jsonPayload = JSON.stringify(payload);
+    console.log("Proxying request to Orchestrator:", jsonPayload);
 
     const response = await fetch("https://concierge-jzf8.onrender.com/orchestrator/run-orchestrator", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
+      headers: { "Content-Type": "application/json" },
+      body: jsonPayload,
     });
 
-    const contentType = response.headers.get("content-type");
-    
+    console.log("Orchestrator response status:", response.status, response.statusText);
+
     if (!response.ok) {
-      const errorData = contentType?.includes("application/json")
-        ? await response.json()
-        : await response.text();
-      
-      console.error("Orchestrator API error:", errorData);
-      
-      return NextResponse.json(
-        { 
-          error: "Failed to call orchestrator",
-          details: typeof errorData === 'string' ? errorData : errorData
-        }, 
-        { status: response.status }
-      );
+       const errorText = await response.text();
+       console.error("Backend error:", errorText);
+       return NextResponse.json({ error: "Backend error", details: errorText }, { status: response.status });
     }
 
-    if (!contentType || !contentType.includes("application/json")) {
-      const text = await response.text();
-      return NextResponse.json(
-        { error: "Orchestrator returned non-JSON response", details: text },
-        { status: 500 }
-      );
-    }
-
-    const data = await response.json();
-    const transformed = transformRoutineData(data);
-
-    // If UID is provided, save to Firestore
-    if (uid && transformed) {
-      try {
-        await setDoc(doc(db, "users", uid, "data", "routine"), {
-          ...transformed,
-          updatedAt: serverTimestamp(),
-        });
-        console.log(`Routine saved to Firestore for user: ${uid}`);
-      } catch (fsError) {
-        console.error("Error saving to Firestore in API:", fsError);
-        // We don't fail the whole request just because Firestore save failed
-      }
-    }
-
-    return NextResponse.json(transformed);
+    // Pass the stream directly through to the frontend
+    return new Response(response.body, {
+      headers: {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+      },
+    });
     
   } catch (error) {
     console.error("Error in API proxy route:", error);
-    return NextResponse.json(
-      { 
-        error: "Internal Server Error",
-        message: error.message,
-        details: error.toString()
-      }, 
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 

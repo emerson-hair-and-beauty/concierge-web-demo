@@ -74,6 +74,9 @@ const initialSelections = {
   porosity_level: null,
   apiRoutine: null,
   isGeneratingRoutine: false,
+  thinkingText: "",
+  generationError: null,
+  debugLogs: [],
 };
 
 const useOnboardingStore = create(
@@ -87,6 +90,20 @@ const useOnboardingStore = create(
         })),
 
       resetSelections: () => set({ selections: { ...initialSelections } }),
+
+      injectTestData: () => set((state) => ({
+        selections: {
+          ...initialSelections,
+          scalp_condition: "Dry",
+          hair_porosity: {
+            q1: "Yes", q2: "No", q3: "Yes", q4: "No", q5: "Yes", q6: "No", q7: "Yes"
+          },
+          hair_texture: "Wavy",
+          hair_density: "Medium",
+          is_damaged: "No",
+          porosity_level: "High Porosity",
+        }
+      })),
 
       getSelections: () => get().selections,
 
@@ -163,7 +180,13 @@ const useOnboardingStore = create(
         if (selections.apiRoutine || selections.isGeneratingRoutine) return;
 
         set((state) => ({
-          selections: { ...state.selections, isGeneratingRoutine: true },
+          selections: { 
+            ...state.selections, 
+            isGeneratingRoutine: true,
+            generationError: null,
+            thinkingText: "Connecting to concierge orchestrator...",
+            debugLogs: ["Requested routine generation..."]
+          },
         }));
 
         try {
@@ -185,25 +208,195 @@ const useOnboardingStore = create(
             body: JSON.stringify(payload),
           });
 
-          const data = await response.json();
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMsg = errorData.details || errorData.error || `HTTP ${response.status}`;
+            throw new Error(errorMsg);
+          }
 
-          if (data && !data.error) {
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let fullThinking = "";
+          let contentBuffer = "";
+          let baseRoutineParsed = false;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            const chunk = decoder.decode(value, { stream: true });
+            buffer += chunk;
+
+            // Split by newline or by potential JSON object boundaries if newlines are missing
+            let lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+
+            for (let line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed) continue;
+              
+              const fragments = trimmed.split(/}(?={)/).map((f, i, arr) => i < arr.length - 1 ? f + "}" : f);
+
+              for (const fragment of fragments) {
+                try {
+                  const data = JSON.parse(fragment);
+                  console.log("Stream data received:", data.type || "unknown", data);
+                  
+                  // Add to debug logs
+                  const logMsg = `CHUNK: ${data.type || 'unknown'}`;
+                  set((state) => ({
+                    selections: {
+                      ...state.selections,
+                      debugLogs: [...state.selections.debugLogs, logMsg].slice(-20)
+                    }
+                  }));
+                  
+                  // 1. Handle Thinking/Reasoning
+                  const thought = data.thought || data.reasoning;
+                  if (thought) {
+                    fullThinking += thought;
+                    const sentences = fullThinking.split(/(?<=[.!?])\s+/).filter(s => s.trim().length > 0);
+                    const latestSentence = sentences[sentences.length - 1] || "";
+                    set((state) => ({ selections: { ...state.selections, thinkingText: latestSentence } }));
+                  }
+
+                  // 2. Handle Content (the routine JSON in markdown)
+                  if (data.type === 'content' && data.content) {
+                    contentBuffer += data.content;
+                    
+                    // Try to extract and parse JSON if we haven't yet or if it looks updated
+                    if (!baseRoutineParsed && contentBuffer.includes('```json')) {
+                      const jsonMatch = contentBuffer.match(/```json\n([\s\S]*?)\n```/);
+                      if (jsonMatch) {
+                        try {
+                          const parsed = JSON.parse(jsonMatch[1]);
+                          const routineArray = parsed.routine || parsed.result || parsed;
+                          if (Array.isArray(routineArray)) {
+                            const transformed = {
+                              profile: "Your Personalized Routine",
+                              steps: routineArray.map(step => ({
+                                title: step.step,
+                                icon: step.step === "Cleanse" ? "💧" : step.step === "Condition" ? "🚿" : step.step === "Treat" ? "✨" : step.step.includes("Style") ? "🎨" : "🧴",
+                                description: step.action,
+                                detailedInstructions: step.notes,
+                                keyIngredients: step.ingredients || [],
+                                recommendedProducts: []
+                              }))
+                            };
+                            
+                            set((state) => ({
+                              selections: {
+                                ...state.selections,
+                                apiRoutine: transformed,
+                                thinkingText: "Routine generated. Now finding products..."
+                              }
+                            }));
+                            baseRoutineParsed = true;
+                          }
+                        } catch (e) {
+                          console.warn("Partial JSON parse failed (expected):", e.message);
+                        }
+                      }
+                    }
+                  }
+
+                  // 3. Handle Product Recommendations (incremental updates)
+                  if (data.type === 'product_recommendation' && data.content) {
+                    const prodData = data.content;
+                    set((state) => {
+                      const currentRoutine = state.selections.apiRoutine;
+                      if (!currentRoutine) return state;
+
+                      const updatedSteps = currentRoutine.steps.map(step => {
+                        if (step.title === prodData.step) {
+                          return {
+                            ...step,
+                            recommendedProducts: prodData.products.map(p => parseProductContent(p.content))
+                          };
+                        }
+                        return step;
+                      });
+
+                      return {
+                        selections: {
+                          ...state.selections,
+                          apiRoutine: { ...currentRoutine, steps: updatedSteps },
+                          thinkingText: `Found recommendations for ${prodData.step}...`
+                        }
+                      };
+                    });
+                  }
+
+                  // 4. Handle Final Result (Legacy/Backup)
+                  if (data.result || data.type === 'result') {
+                    // This is the final routine object
+                    const transformed = transformRoutineData(data.result ? data : { result: data.data || data });
+                    if (transformed) {
+                      console.log("Final routine received and transformed");
+                      
+                      // Save to Firestore from the client as well
+                      const user = auth.currentUser;
+                      if (user?.uid) {
+                        get().saveRoutine(user.uid, transformed);
+                      }
+
+                      set((state) => ({
+                        selections: {
+                          ...state.selections,
+                          apiRoutine: transformed,
+                          isGeneratingRoutine: false,
+                          thinkingText: ""
+                        },
+                      }));
+                      return; // Done
+                    }
+                  }
+                } catch (e) {
+                  console.warn("Failed to parse stream line/fragment:", fragment, e);
+                }
+              }
+            }
+          }
+          // Final check: if we have a routine, it's a success even if no 'result' chunk was sent
+          const finalRoutine = get().selections.apiRoutine;
+          if (finalRoutine) {
+            console.log("Stream finished successfully with routine");
+            
+            // Save to Firestore
+            const user = auth.currentUser;
+            if (user?.uid) {
+              get().saveRoutine(user.uid, finalRoutine);
+            }
+
             set((state) => ({
-              selections: {
-                ...state.selections,
-                apiRoutine: data, // Server now returns the transformed routine
+              selections: { 
+                ...state.selections, 
                 isGeneratingRoutine: false,
+                thinkingText: ""
               },
             }));
-          } else {
-            set((state) => ({
-              selections: { ...state.selections, isGeneratingRoutine: false },
-            }));
+            return;
           }
+
+          // If we reach here without setting a routine, something went wrong
+          set((state) => ({
+            selections: { 
+              ...state.selections, 
+              isGeneratingRoutine: false,
+              generationError: "Stream closed unexpectedly before completion."
+            },
+          }));
+
         } catch (error) {
           console.error("Error creating routine:", error);
           set((state) => ({
-            selections: { ...state.selections, isGeneratingRoutine: false },
+            selections: { 
+              ...state.selections, 
+              isGeneratingRoutine: false,
+              generationError: error.message || "Failed to generate routine",
+              thinkingText: ""
+            },
           }));
         }
       },
