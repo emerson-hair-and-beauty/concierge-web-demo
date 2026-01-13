@@ -59,8 +59,9 @@ Vercel automatically creates a unique URL for every branch.
 If you want a cleaner, permanent URL like `testing.yourdomain.com` or `concierge-test.vercel.app`:
 1. Go to **Project Settings > Domains**.
 2. Add a new domain/subdomain (e.g., `test.yourdomain.com`).
-3. When prompted, select **"Git Branch"** and enter `stable-version`.
-4. Now, that specific URL will *always* point to the latest code on your `stable-version` branch, while your main URL stays on `main`.
+3. **Important**: You must leave the environment as **Preview**. Vercel only allows branch-specific domains for Preview environments (Production is reserved for your main branch).
+4. Select **"Git Branch"** and enter `stable-version`.
+5. Now, that specific URL will *always* point to the latest code on your `stable-version` branch.
 
 > [!TIP]
 > This is perfect for user testing because you can give out one "Testing Link" that never changes, even as you continue to push updates to the `stable-version` branch!
@@ -70,3 +71,13 @@ If you want a cleaner, permanent URL like `testing.yourdomain.com` or `concierge
 
 ## Environment Variables
 Don't forget to add your Firebase configuration and any other sensitive keys in the Vercel Dashboard under **Project Settings > Environment Variables**. Ensure they are checked for "Preview" and "Development" environments as well.
+## Troubleshooting: "Authentication Required"
+
+By default, Vercel protects all Preview deployments with a login screen (Vercel Authentication) so only your team can see them. To allow your testers to access the `stable-version` URL without logging in:
+
+1.  Go to **Settings > Deployment Protection**.
+2.  Find **"Vercel Authentication"**.
+3.  Switch it to **Disabled** (or configure a password protection if you prefer).
+4.  Click **Save**.
+
+Now anyone with the link can view the testing site.
