@@ -1,104 +1,82 @@
-import { Box, Container, Typography, Button } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
+import { useState } from "react";
 import { typographyStyles } from "../../styles/typographyStyles";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import RoutineStep from "./RoutineStep";
+import StepperNavigation from "./StepperNavigation";
 import { useRoutineManager } from "../../hooks/useRoutineManager";
 
 export default function CustomRoutine({ routine }) {
-  console.log(routine);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  
   const {
-    openStepId,
     completedSteps,
     completedCount,
-    handleToggle,
     handleComplete,
-    markAllComplete,
   } = useRoutineManager(routine.steps.length);
 
+  const currentStep = routine.steps[currentStepIndex];
+
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
+    <Box sx={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column',
+      pb: 12 // Space for fixed stepper navigation
+    }}>
+      {/* Fixed Header - Top Left */}
       <Box
         sx={{
-          bgcolor: "rgba(232, 243, 238, 0.5)",
-          backdropFilter: "blur(4px)",
-          borderRadius: 6,
-          p: 4,
-          textAlign: "center",
-          mb: 4,
+          position: 'fixed',
+          top: 20,
+          left: 20,
+          zIndex: 1100,
+          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(8px)',
+          borderRadius: 3,
+          px: 2,
+          py: 1,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          border: '1px solid #f5f5f4'
         }}
       >
-        <Box
-          sx={{
-            width: 48,
-            height: 48,
-            bgcolor: "#2D5B4B",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            mx: "auto",
-            mb: 2,
-            color: "white",
-          }}
-        >
-          <AutoAwesomeIcon />
-        </Box>
         <Typography
-          variant="h4"
-          component="h1"
-          sx={{ ...typographyStyles, fontWeight: 700, color: "#1c1917", mb: 1 }}
+          variant="body2"
+          sx={{ 
+            ...typographyStyles, 
+            fontWeight: 600, 
+            color: "#2D5B4B",
+            mb: 0.25
+          }}
         >
           Your Custom Routine
         </Typography>
         <Typography
-          variant="body1"
-          sx={{ ...typographyStyles, color: "#5F6D68" }}
+          variant="caption"
+          sx={{ ...typographyStyles, color: "#78716c", fontSize: '0.7rem' }}
         >
-          Personalized for: {routine.profile || "Your unique hair type"}
+          {completedCount}/{routine.steps.length} completed
         </Typography>
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 3 }}>
-          <Typography
-            variant="caption"
-            sx={{ ...typographyStyles, color: "#5F6D68" }}
-          >
-            {completedCount}/{routine.steps.length}
-          </Typography>
-        </Box>
       </Box>
 
-      <Box>
-        {routine.steps.map((step, index) => (
+      <Container maxWidth="sm" sx={{ pt: 10, pb: 3, flexGrow: 1 }}>
+        {/* Current Step Display */}
+        <Box>
           <RoutineStep
-            key={index}
-            stepNumber={index + 1}
-            step={step}
-            isOpen={openStepId === index + 1}
-            onToggle={handleToggle(index + 1)}
-            isComplete={!!completedSteps[index]}
-            onComplete={() => handleComplete(index)}
+            stepNumber={currentStepIndex + 1}
+            step={currentStep}
+            isComplete={!!completedSteps[currentStepIndex]}
+            onComplete={() => handleComplete(currentStepIndex)}
           />
-        ))}
-      </Box>
+        </Box>
+      </Container>
 
-      <Box sx={{ mt: 4 }}>
-        <Button
-          fullWidth
-          variant="contained"
-          size="large"
-          onClick={markAllComplete}
-          sx={{
-            ...typographyStyles,
-            bgcolor: "#2D5B4B",
-            "&:hover": { bgcolor: "#244A3D" },
-            borderRadius: 50,
-            py: 1.5,
-            textTransform: "none",
-            boxShadow: "0 10px 15px -3px rgba(45, 91, 75, 0.2)",
-          }}
-        >
-          Mark All as Complete
-        </Button>
-      </Box>
-    </Container>
+      {/* Stepper Navigation */}
+      <StepperNavigation
+        totalSteps={routine.steps.length}
+        currentStep={currentStepIndex}
+        completedSteps={completedSteps}
+        onStepChange={setCurrentStepIndex}
+      />
+    </Box>
   );
 }
