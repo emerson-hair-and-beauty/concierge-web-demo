@@ -1,18 +1,18 @@
 import { Box } from "@mui/material";
 import SingleRadioOnboarding from "../onboarding/SingleRadioOnboarding";
 import useOnboardingStore from "../../hooks/useOnboardingStore";
-import { DAMAGE_OPTIONS } from "../../constants/onboardingData";
+import { PROCESSING_OPTIONS } from "../../constants/onboardingData";
 
-export default function DamageLevelStep() {
+export default function TreatmentHistoryStep() {
   const value = useOnboardingStore((s) => s.selections.is_damaged);
-  const options = DAMAGE_OPTIONS;
+  const options = PROCESSING_OPTIONS;
 
-  const description = {
-    title: "What's your damage level?",
-    description: "Select the option that best describes your hair's condition",
-    footnote:
-      "Consider chemical treatments, heat styling, and overall hair health",
-  };
+ const description = {
+  title: "Has your hair been chemically treated?",
+  description: "Select the option that best describes your hair's history.",
+  footnote:
+    "Include professional or at-home color, bleach, relaxers, or permanent waves.",
+};
 
   return (
     <Box>

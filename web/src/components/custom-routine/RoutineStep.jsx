@@ -1,12 +1,13 @@
-import { Accordion, AccordionSummary, AccordionDetails, Typography, Box, Button } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Grid, Typography, Box, Button } from '@mui/material';
+
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ProductCard from './ProductCard';
-import { useAutoScroll } from '../../hooks/useAutoScroll';
+// import { useAutoScroll } from '../../hooks/useAutoScroll';
 
 export default function RoutineStep({ step, stepNumber, isOpen, onToggle, isComplete, onComplete }) {
-  const scrollContainerRef = useAutoScroll(isOpen);
+  // Removed useAutoScroll
 
   return (
     <Accordion 
@@ -63,8 +64,8 @@ export default function RoutineStep({ step, stepNumber, isOpen, onToggle, isComp
           </Typography>
         </Box>
 
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 2, color: '#1c1917', fontWeight: 600 }}>Key Ingredients to Look For</Typography>
+        {/* <Box sx={{ mb:  }}>
+ <Typography variant="subtitle2" sx={{ mb: 2, color: '#1c1917', fontWeight: 600 }}>Key Ingredients to Look For</Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {step.keyIngredients && step.keyIngredients.map((ingredient, idx) => (
               <Box key={idx} sx={{ px: 1.5, py: 0.5, bgcolor: isComplete ? '#dcfce7' : '#E8F3EE', borderRadius: 50 }}>
@@ -72,31 +73,17 @@ export default function RoutineStep({ step, stepNumber, isOpen, onToggle, isComp
               </Box>
             ))}
           </Box>
-        </Box>
+        </Box> */}
 
         <Box sx={{ mb: 4 }}>
           <Typography variant="subtitle2" sx={{ mb: 2, color: '#1c1917', fontWeight: 600 }}>Recommended Products</Typography>
-          <Box 
-            ref={scrollContainerRef}
-            sx={{ 
-              display: 'flex', 
-              gap: 2, 
-              overflowX: 'auto', 
-              pb: 2,
-              mx: -2,
-              px: 2,
-              alignItems: 'stretch',
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': { display: 'none' },
-              scrollBehavior: 'smooth' 
-            }}
-          >
+          <Grid container spacing={2}>
             {step.recommendedProducts && step.recommendedProducts.map((product, idx) => (
-              <Box key={idx} sx={{ minWidth: 260, maxWidth: 280, flex: '0 0 auto' }}>
+              <Grid key={idx} size={{ xs: 12, md: 4 }}>
                 <ProductCard product={product} />
-              </Box>
+              </Grid>
             ))}
-          </Box>
+          </Grid>
         </Box>
 
         <Button 

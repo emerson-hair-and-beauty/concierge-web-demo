@@ -1,46 +1,29 @@
 import React from "react";
-import CheckIcon from "@mui/icons-material/CheckCircleOutline";
-import TextureIcon from "@mui/icons-material/Texture";
-import OpacityIcon from "@mui/icons-material/Opacity";
-import WaterDropIcon from "@mui/icons-material/WaterDrop";
-import FlashOnIcon from "@mui/icons-material/FlashOn";
-import SpaIcon from "@mui/icons-material/Spa";
-import WavesIcon from "@mui/icons-material/Waves";
-import CloudIcon from "@mui/icons-material/Cloud";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward"; 
-import LineWeightIcon from "@mui/icons-material/LineWeight";
-import BalanceOutlinedIcon from "@mui/icons-material/BalanceOutlined";
-import DensityMediumOutlinedIcon from "@mui/icons-material/DensityMediumOutlined";
-import StraightenOutlinedIcon from "@mui/icons-material/StraightenOutlined";
-import WavesOutlinedIcon from "@mui/icons-material/WavesOutlined";
-import LoopOutlinedIcon from "@mui/icons-material/LoopOutlined";
-import BlurOnOutlinedIcon from "@mui/icons-material/BlurOnOutlined";
-import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
-import BrokenImageOutlinedIcon from "@mui/icons-material/BrokenImageOutlined";
+// ... (Your existing Icon imports)
 
 export const SCALP_OPTIONS = [
   {
     value: "oily",
     label: "Oily",
-    description: "Prone to sebum buildup, requires frequent cleansing.",
+    description: "Feels greasy or 'flat' just a day after washing; prone to buildup.",
     icon: "scalp_oily",
   },
   {
     value: "dry",
     label: "Dry",
-    description: "Prone to flaking, tightness, and itching/irritation.",
+    description: "Often feels tight, itchy, or shows fine flakes; lacks natural shine.",
     icon: "scalp_dry",
   },
   {
     value: "normal",
     label: "Normal",
-    description: "Well-balanced, healthy, and easy to manage.",
+    description: "Stays fresh for 3+ days; rarely feels too greasy or too tight.",
     icon: "scalp_normal",
   },
   {
     value: "sensitive",
     label: "Sensitive",
-    description: "Reacts easily to products, prone to redness and discomfort.",
+    description: "Easily irritated; reacts with redness or stinging to new products.",
     icon: "scalp_sensitive",
   },
 ];
@@ -48,55 +31,57 @@ export const SCALP_OPTIONS = [
 export const DENSITY_OPTIONS = [
   {
     label: "Thin",
-    description: "Hair is sparse and fine; scalp is easily visible.",
+    description: "Individual hairs are fine or sparse; I can easily see my scalp.",
     icon: "density_thin",
   },
   {
     label: "Medium",
-    description:
-      "Hair is neither sparse nor extremely thick; scalp is semi-visible.",
+    description: "A balanced amount of hair; my scalp is only visible at the part.",
     icon: "density_medium",
   },
   {
     label: "Thick",
-    description: "Hair is abundant and coarse; scalp is difficult to see.",
+    description: "A lot of hair; I can barely see my scalp and hair-ties feel tight.",
     icon: "density_thick",
   },
 ];
 
 export const TEXTURE_OPTIONS = [
   {
-    label: "Straight",
-    description: "Hair falls without a curl pattern (Type 1).",
+    value: "straight",
+    label: "Flat & Straight",
+    description: "No matter what I do, my hair stays straight and rarely holds a curl.",
     icon: "texture_straight",
   },
   {
-    label: "Wavy",
-    description: "Hair forms a loose S-shape (Type 2).",
+    value: "wavy",
+    label: "Loose Waves",
+    description: "My hair has a 'bend' or an S-shape, like I just came from the beach.",
     icon: "texture_wavy",
   },
   {
-    label: "Curly",
-    description: "Hair forms spirals, loops, or distinct curls (Type 3).",
+    value: "curly",
+    label: "Defined Curls",
+    description: "I have actual loops and ringlets that spring back when pulled.",
     icon: "texture_curly",
   },
   {
-    label: "Coily",
-    description: "Hair forms tight coils, zig-zags, or corkscrews (Type 4).",
+    value: "coily",
+    label: "Tight Coils",
+    description: "My hair has very tight patterns and looks much shorter than it actually is.",
     icon: "texture_coily",
   },
 ];
 
-export const DAMAGE_OPTIONS = [
+export const PROCESSING_OPTIONS = [
   {
-    label: "Yes",
-    description:
-      "Hair has been chemically treated (color, bleach, perms, relaxers).",
-    icon: "check_damaged",
+    label: "Processed",
+    description: "My hair has been chemically altered (bleach, color, perms, or relaxers).",
+    icon: "check_damaged", // You can keep the icon name or rename it to 'check_processed'
   },
   {
-    label: "No",
-    description: "Hair is virgin or has only been treated with heat.",
+    label: "Natural",
+    description: "My hair is 'virgin' or has only been styled with heat tools.",
     icon: "check_solid",
   },
 ];
@@ -104,56 +89,56 @@ export const DAMAGE_OPTIONS = [
 export const POROSITY_QUESTIONS = [
   {
     key: "q1",
-    question: "How does your hair feel when you touch it?",
+    question: "How does your hair feel when you slide your fingers up a strand?",
     options: [
-      { value: "smooth", label: "Smooth", icon: "porosity_smooth" },
-      { value: "wiry", label: "Wiry", icon: "porosity_wiry" },
-      { value: "rough", label: "Rough", icon: "porosity_rough" },
+      { value: "smooth", label: "Silky & Smooth", icon: "porosity_smooth" },
+      { value: "wiry", label: "Slightly Uneven", icon: "porosity_wiry" },
+      { value: "rough", label: "Rough or Bumpy", icon: "porosity_rough" },
     ],
   },
   {
     key: "q2",
-    question: "How long does it take for your hair to get fully wet?",
+    question: "In the shower, how long does it take for your hair to get soaked?",
     options: [
-      { value: "slowly", label: "Slowly", icon: "porosity_slow" },
-      { value: "moderately", label: "Moderately", icon: "porosity_med" },
-      { value: "quickly", label: "Quickly", icon: "porosity_fast" },
+      { value: "slowly", label: "A while—water beads off at first", icon: "porosity_slow" },
+      { value: "moderately", label: "Normal—gets wet pretty quickly", icon: "porosity_med" },
+      { value: "quickly", label: "Instantly—it 'drinks' the water", icon: "porosity_fast" },
     ],
   },
   {
     key: "q3",
-    question: "How long does it take for your hair to dry?",
+    question: "After washing, how long does it take to air-dry completely?",
     options: [
-      { value: "slowly", label: "Slowly", icon: "porosity_slow" },
-      { value: "moderately", label: "Moderately", icon: "porosity_med" },
-      { value: "quickly", label: "Quickly", icon: "porosity_fast" },
+      { value: "slowly", label: "Forever (can take half a day)", icon: "porosity_slow" },
+      { value: "moderately", label: "A few hours", icon: "porosity_med" },
+      { value: "quickly", label: "Very fast (under an hour)", icon: "porosity_fast" },
     ],
   },
   {
     key: "q4",
-    question: "Does your hair absorb products easily?",
+    question: "When you apply oils or creams, what happens?",
     options: [
-      { value: "yes", label: "Yes", icon: "check_solid" },
-      { value: "sometimes", label: "Sometimes", icon: "porosity_smooth" },
-      { value: "no", label: "No", icon: "porosity_rough" },
+      { value: "no", label: "They sit on top and feel greasy", icon: "porosity_rough" },
+      { value: "sometimes", label: "They absorb after a little massage", icon: "porosity_smooth" },
+      { value: "yes", label: "They disappear into my hair instantly", icon: "check_solid" },
     ],
   },
   {
     key: "q5",
-    question: "How does your hair react to humidity?",
+    question: "How does your hair react to a humid or rainy day?",
     options: [
-      { value: "frizzes", label: "Frizzes", icon: "texture_coily" },
-      { value: "no_change", label: "No Change", icon: "check_solid" },
-      { value: "gets_flat", label: "Gets Flat", icon: "texture_straight" },
+      { value: "frizzes", label: "It 'poofs' out and gets very frizzy", icon: "texture_coily" },
+      { value: "no_change", label: "It stays mostly the same", icon: "check_solid" },
+      { value: "gets_flat", label: "It loses volume and goes limp", icon: "texture_straight" },
     ],
   },
   {
     key: "q6",
-    question: "How often does your hair need moisturizing?",
+    question: "How often does your hair feel 'thirsty' or parched?",
     options: [
-      { value: "often", label: "Often", icon: "porosity_fast" },
-      { value: "sometimes", label: "Sometimes", icon: "porosity_med" },
-      { value: "rarely", label: "Rarely", icon: "porosity_slow" },
+      { value: "often", label: "Daily—it always feels dry", icon: "porosity_fast" },
+      { value: "sometimes", label: "Every few days", icon: "porosity_med" },
+      { value: "rarely", label: "Rarely—it stays moisturized", icon: "porosity_slow" },
     ],
   },
 ];

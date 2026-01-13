@@ -4,7 +4,7 @@ import { Box, Button, LinearProgress, Typography, useTheme, useMediaQuery } from
 import { typographyStyles } from "../../styles/typographyStyles";
 import HairDensityStep from "@/components/steps/HairDensityStep";
 
-import DamageLevelStep from "@/components/steps/DamageLevelStep";
+import TreatmentHistoryStep from "@/components/steps/TreatmentHistoryStep";
 import PorosityStep from "@/components/steps/PorosityStep";
 
 import React, { useState } from "react";
@@ -64,7 +64,7 @@ export default function Onboarding() {
       component: <HairDensityStep />,
     },
     { title: "Porosity", component: <PorosityStep /> },
-    { title: "Damage Level", component: <DamageLevelStep /> },
+    { title: "Treatment History", component: <TreatmentHistoryStep /> },
     {
       title: "Hair Texture",
       component: <HairTextureStep />,
