@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import CustomRoutine from "@/components/custom-routine/CustomRoutine";
+import ExperienceChat from "@/components/routine/ExperienceChat";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { Container, Box, Typography, LinearProgress, Paper, Fade } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
@@ -172,6 +173,7 @@ export default function RoutineResult() {
         </Box>
       )}
       <CustomRoutine routine={apiRoutine} />
+      <ExperienceChat />
     </Container>
   );
 }
