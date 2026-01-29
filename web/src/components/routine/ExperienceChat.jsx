@@ -98,11 +98,18 @@ const DoctorPanel = styled(Box)({
   justifyContent: 'center',
 });
 
-export default function ExperienceChat() {
-  const [isOpen, setIsOpen] = useState(false);
+export default function ExperienceChat({ isOpenExternal, onCloseExternal, onOpenExternal }) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [sliderValue, setSliderValue] = useState(5);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  
+  const isOpen = isOpenExternal !== undefined ? isOpenExternal : internalOpen;
+  const setIsOpen = (val) => {
+    if (val === false && onCloseExternal) onCloseExternal();
+    if (val === true && onOpenExternal) onOpenExternal();
+    setInternalOpen(val);
+  };
   
   const { user } = useUserData();
   const { 
@@ -179,20 +186,10 @@ export default function ExperienceChat() {
       <Fade in={isOpen}>
         <ChatProvider elevation={0}>
           <ChatHeader>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Avatar sx={{ bgcolor: isHandoff ? '#FF5252' : '#4A8B71', width: 32, height: 32 }}>
-                {isHandoff ? <HealthAndSafetyIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
-              </Avatar>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                  {isHandoff ? 'Doctor Mode' : 'Empath AI'}
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                  {isHandoff ? 'Precision Measurement' : 'Tracking your routine'}
-                </Typography>
-              </Box>
-            </Box>
             <Box sx={{ display: 'flex', gap: 0.5 }}>
+              <IconButton size="small" onClick={() => setIsOpen(false)} sx={{ color: 'white' }}>
+                <CloseIcon fontSize="small" />
+              </IconButton>
               {!isHandoff && messages.length > 0 && (
                 <IconButton 
                   size="small" 
@@ -203,9 +200,20 @@ export default function ExperienceChat() {
                   <DeleteSweepIcon fontSize="small" />
                 </IconButton>
               )}
-              <IconButton size="small" onClick={() => setIsOpen(false)} sx={{ color: 'white' }}>
-                <CloseIcon fontSize="small" />
-              </IconButton>
+            </Box>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, textAlign: 'right' }}>
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+                  {isHandoff ? 'Doctor Mode' : 'Empath AI'}
+                </Typography>
+                <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>
+                  {isHandoff ? 'Vital Check' : 'Concierge'}
+                </Typography>
+              </Box>
+              <Avatar sx={{ bgcolor: isHandoff ? '#FF5252' : '#4A8B71', width: 32, height: 32 }}>
+                {isHandoff ? <HealthAndSafetyIcon fontSize="small" /> : <SmartToyIcon fontSize="small" />}
+              </Avatar>
             </Box>
           </ChatHeader>
 

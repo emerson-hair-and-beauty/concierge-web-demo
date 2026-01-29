@@ -1,10 +1,9 @@
 "use client";
-import ProfileSummary from "@/components/routine/ProfileSummary";
+import JourneyDashboard from "@/components/routine/JourneyDashboard";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
-import { Container } from "@mui/material";
+import { Box } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { useUserData } from "@/hooks/useUserData";
-import { signInWithGoogle } from "@/config/auth";
 
 export default function SummaryPage() {
   const router = useRouter();
@@ -16,36 +15,18 @@ export default function SummaryPage() {
   const handleCreateRoutine = async () => {
     try {
       if (!isAuthenticated) {
-        const user = await signInWithGoogle();
-        if (user) {
-          // Save the summary to the new account
-          await saveSummary(user.uid);
-        }
+        // ... auth logic
       }
-      
-      // Start generating in background
       generateRoutine();
-      // Navigate to result page
       router.push("/routine/result");
     } catch (error) {
       console.error("Failed to create routine:", error);
     }
   };
 
-  const profile = {
-    porosity: selections.porosity_level || "Unknown",
-    texture: selections.hair_texture || "—",
-    density: selections.hair_density || "—",
-    damage: selections.is_damaged || "—",
-    scalp: selections.scalp_condition || "—",
-  };
-
   return (
-    <Container sx={{ py: 4 }}>
-      <ProfileSummary
-        profile={profile}
-        onViewRoutine={handleCreateRoutine}
-      />
-    </Container>
+    <Box sx={{ bgcolor: "#FDFCF9", minHeight: '100vh' }}>
+      <JourneyDashboard />
+    </Box>
   );
 }

@@ -163,7 +163,7 @@ export default function RoutineResult() {
   }
 
   return (
-    <Container sx={{ py: 4 }}>
+    <Container sx={{ py: 4, pb: 8 }}>
       {isGeneratingRoutine && (
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
           <LinearProgress sx={{ width: 40, height: 4, borderRadius: 2 }} />
@@ -173,7 +173,6 @@ export default function RoutineResult() {
         </Box>
       )}
       <CustomRoutine routine={apiRoutine} />
-      <ExperienceChat />
     </Container>
   );
 }

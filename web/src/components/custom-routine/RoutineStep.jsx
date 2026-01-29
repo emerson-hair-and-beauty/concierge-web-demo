@@ -40,13 +40,13 @@ export default function RoutineStep({ step, stepNumber, isComplete, onComplete }
           )}
         </Box>
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="caption" sx={{ color: '#78716c', fontWeight: 500, fontSize: '0.7rem' }}>
+          <Typography variant="caption" sx={{ color: '#78716c', fontWeight: 400, fontSize: '0.65rem' }}>
             Step {stepNumber}
           </Typography>
-          <Typography variant="subtitle1" sx={{ color: '#1c1917', fontWeight: 600, lineHeight: 1.2, mb: 0.5 }}>
+          <Typography variant="subtitle2" sx={{ color: '#1c1917', fontWeight: 600, lineHeight: 1.2, mb: 0.3 }}>
             {step.title}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#57534e', fontSize: '0.75rem', lineHeight: 1.3 }}>
+          <Typography variant="caption" sx={{ color: '#57534e', fontSize: '0.7rem', lineHeight: 1.3, display: 'block', opacity: 0.8 }}>
             {step.description}
           </Typography>
         </Box>
