@@ -3,15 +3,22 @@ export async function POST(req) {
     const body = await req.json();
     
     // Proxy to external diagnostic backend
+    // Proxy to external diagnostic backend
     // Live URL: https://concierge-jzf8.onrender.com
-    const response = await fetch('https://concierge-jzf8.onrender.com/api/event', {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://concierge-jzf8.onrender.com';
+    const response = await fetch(`${apiUrl}/api/event`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-        throw new Error(`Backend responded with ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Diagnostic Event Proxy Upstream Error (${response.status}):`, errorText);
+        return new Response(errorText, {
+            status: response.status,
+            headers: { 'Content-Type': 'application/json' }
+        });
     }
 
     const data = await response.json();

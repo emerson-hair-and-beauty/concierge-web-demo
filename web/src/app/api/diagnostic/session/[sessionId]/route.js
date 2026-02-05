@@ -3,7 +3,8 @@ export async function DELETE(req, { params }) {
     const { sessionId } = params;
     
     // Proxy to external diagnostic backend
-    const response = await fetch(`https://concierge-jzf8.onrender.com/api/session/${sessionId}`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://concierge-jzf8.onrender.com';
+    const response = await fetch(`${apiUrl}/api/session/${sessionId}`, {
       method: 'DELETE',
     });
 

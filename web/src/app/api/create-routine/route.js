@@ -57,7 +57,8 @@ export async function POST(request) {
     const jsonPayload = JSON.stringify(payload);
     console.log("Proxying request to Orchestrator:", jsonPayload);
 
-    const response = await fetch("https://concierge-jzf8.onrender.com/orchestrator/run-orchestrator", {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://concierge-jzf8.onrender.com';
+    const response = await fetch(`${apiUrl}/orchestrator/run-orchestrator`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: jsonPayload,
