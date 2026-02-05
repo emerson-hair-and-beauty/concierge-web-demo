@@ -10,7 +10,12 @@ const generateUUID = () => {
 
 export const useExperienceChat = (userId) => {
   const [sessionId, setSessionId] = useState(null);
-  const [messages, setMessages] = useState([]);
+  const INITIAL_MESSAGE = { 
+    role: 'assistant', 
+    content: "Hi! How's your hair feeling today?" 
+  };
+
+  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
   const [isHandoff, setIsHandoff] = useState(false);
   const [targetVital, setTargetVital] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,7 +95,7 @@ export const useExperienceChat = (userId) => {
       }
     }
     setSessionId(generateUUID());
-    setMessages([]);
+    setMessages([INITIAL_MESSAGE]);
     setIsHandoff(false);
     setTargetVital(null);
   }, [sessionId]);

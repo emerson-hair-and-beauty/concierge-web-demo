@@ -269,11 +269,7 @@ export default function ExperienceChat({ isOpenExternal, onCloseExternal, onOpen
           ) : (
             <>
               <MessageList ref={scrollRef}>
-                {messages.length === 0 && (
-                  <MessageBubble isUser={false}>
-                    Hi! I'm here to help you track how your routine is going. How do your hair and scalp feel today?
-                  </MessageBubble>
-                )}
+                
                 {messages.map((msg, i) => (
                   <MessageBubble key={i} isUser={msg.role === 'user'}>
                     {msg.content}
