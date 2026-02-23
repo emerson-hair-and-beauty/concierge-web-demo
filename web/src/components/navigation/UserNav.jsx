@@ -13,6 +13,7 @@ import {
   alpha
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
+import HistoryIcon from "@mui/icons-material/History";
 import PersonIcon from "@mui/icons-material/Person";
 import { useUserData } from "@/hooks/useUserData";
 import { signOutUser } from "@/config/auth";
@@ -91,9 +92,9 @@ export default function UserNav() {
         <Divider sx={{ my: 1, opacity: 0.5 }} />
         <MenuItem onClick={handleProfile} sx={{ py: 1.5, borderRadius: "8px", mx: 1 }}>
           <ListItemIcon>
-            <PersonIcon fontSize="small" />
+            <HistoryIcon fontSize="small" />
           </ListItemIcon>
-          Profile Summary
+          Journal
         </MenuItem>
         <MenuItem 
           onClick={handleLogout} 

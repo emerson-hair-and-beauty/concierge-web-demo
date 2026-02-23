@@ -20,10 +20,12 @@ export default function TopNav() {
   let value = 0;
   if (pathname === '/routine/result') value = 0;
   if (pathname === '/routine/summary') value = 1;
+  if (pathname === '/routine/insights') value = 2;
 
   const handleChange = (event, newValue) => {
     if (newValue === 0) router.push('/routine/result');
     if (newValue === 1) router.push('/routine/summary');
+    if (newValue === 2) router.push('/routine/insights');
   };
 
   return (
@@ -69,6 +71,7 @@ export default function TopNav() {
       >
         <Tab label="Routine" />
         <Tab label="Journal" />
+        <Tab label="Insights" />
       </Tabs>
     </Paper>
   );

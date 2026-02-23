@@ -17,14 +17,14 @@ import { useRouter, usePathname } from "next/navigation";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import AutoGraphIcon from "@mui/icons-material/AutoGraph";
-import PersonIcon from "@mui/icons-material/Person";
+import HistoryIcon from "@mui/icons-material/History";
 import { typographyStyles } from "@/styles/typographyStyles";
 
 const NAV_ITEMS = [
   { label: "Routine", icon: <AssignmentIcon />, path: "/routine/result" },
   { label: "Products", icon: <ShoppingBagIcon />, path: "/routine/products" },
-  { label: "Journey", icon: <AutoGraphIcon />, path: "/routine/the-journey" },
-  { label: "Profile", icon: <PersonIcon />, path: "/routine/summary" },
+  { label: "Insights", icon: <AutoGraphIcon />, path: "/routine/insights" },
+  { label: "Journal", icon: <HistoryIcon />, path: "/routine/summary" },
 ];
 
 export default function MainNav() {
