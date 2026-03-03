@@ -10,8 +10,8 @@ export default function ScalpConditionStep() {
 
   const description = {
     title: "Describe your scalp",
-    description: "What condition best describes your scalp?",
-    footnote: "Consider any irritation, dryness, oiliness, or sensitivity",
+    description: "Your scalp sets the foundation for everything that follows. Which sounds most like yours?",
+    footnote: "Scalp Condition",
   };
 
   return (

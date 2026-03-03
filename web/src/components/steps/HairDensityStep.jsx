@@ -9,9 +9,8 @@ export default function HairDensityStep() {
 
   const description = {
     title: "What's your hair density?",
-    description: "How thick does your hair feel overall?",
-    footnote:
-      "Tie your hair in a ponytail and measure the circumference for a more accurate assessment",
+    description: "Density refers to how much hair you have overall. Which feels most accurate?",
+    footnote: "Density",
   };
 
   return (

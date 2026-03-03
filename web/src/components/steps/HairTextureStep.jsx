@@ -8,9 +8,9 @@ export default function HairTextureStep() {
   const options = TEXTURE_OPTIONS;
 
   const description = {
-    title: "What is your hair pattern?",
-    description: "Select the texture that best matches your natural hair",
-    footnote: "Choose the pattern closest to your natural, unstyled hair",
+    title: "What is your natural hair pattern?",
+    description: "Choose the option that most closely matches your hair in its natural, air-dried state.",
+    footnote: "Hair Texture",
   };
 
   return (

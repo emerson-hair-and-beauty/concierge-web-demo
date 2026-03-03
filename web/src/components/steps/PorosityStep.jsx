@@ -29,7 +29,7 @@ export default function PorosityStep() {
           fontWeight: 700,
         }}
       >
-        Porosity Quiz
+        Porosity
       </Typography>
       <Typography
         sx={{
@@ -39,8 +39,9 @@ export default function PorosityStep() {
           mb: 4,
         }}
       >
-        Answer the following questions to help us determine your hair's
-        porosity.
+        Porosity tells us how your hair absorbs and holds moisture. These next
+        few questions help us personalise your routine. Answer based on how your
+        hair behaves most of the time.
       </Typography>
 
       <Stack>
@@ -99,17 +100,31 @@ export default function PorosityStep() {
                         >
                           <OnboardingIcon type={option.icon} isChecked={isChecked} />
                         </Box>
-                        <Typography
-                          sx={{
-                            ...typographyStyles.caption,
-                            fontWeight: isChecked ? 600 : 400,
-                            color: isChecked ? "#2D5A4A" : "text.primary",
-                            fontSize: "0.9rem",
-                            textAlign: "left"
-                          }}
-                        >
-                          {option.label}
-                        </Typography>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+                          <Typography
+                            sx={{
+                              ...typographyStyles.caption,
+                              fontWeight: isChecked ? 600 : 500,
+                              color: isChecked ? "#2D5A4A" : "text.primary",
+                              fontSize: "0.9rem",
+                              textAlign: "left",
+                            }}
+                          >
+                            {option.label}
+                          </Typography>
+                          {option.description && (
+                            <Typography
+                              sx={{
+                                fontSize: "0.75rem",
+                                color: isChecked ? "#2D5A4A" : "text.secondary",
+                                textAlign: "left",
+                                lineHeight: 1.3,
+                              }}
+                            >
+                              {option.description}
+                            </Typography>
+                          )}
+                        </Box>
                       </Card>
                     </Grid>
                   );

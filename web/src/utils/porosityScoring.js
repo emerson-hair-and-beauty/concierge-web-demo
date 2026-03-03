@@ -3,22 +3,21 @@ import { POROSITY_QUESTIONS } from "@/constants/onboardingData";
 /**
  * Calculates the porosity level based on the answers provided.
  *
- * Scoring logic matches the Python reference:
+ * Scoring logic:
  * - Option 1 (Index 0): 0 points
  * - Option 2 (Index 1): 1 point
  * - Option 3 (Index 2): 2 points
  *
- * Thresholds:
- * - Score <= 3: "Low Porosity"
- * - 3 < Score <= 6: "Medium Porosity"
- * - Score > 6: "High Porosity"
+ * With 3 questions the maximum score is 6.
+ * Thresholds (equal thirds):
+ * - Score <= 2: "Low Porosity"
+ * - 2 < Score <= 4: "Medium Porosity"
+ * - Score > 4: "High Porosity"
  *
  * @param {Object} answers - Key-value map of question keys to selected values
  * @returns {string} - "Low Porosity", "Medium Porosity", or "High Porosity"
  */
 export function calculatePorosityLevel(answers) {
-
-    
   let score = 0;
 
   if (!answers) return "Unknown";
@@ -38,9 +37,9 @@ export function calculatePorosityLevel(answers) {
     }
   });
 
-  if (score <= 3) {
+  if (score <= 2) {
     return "Low Porosity";
-  } else if (score <= 6) {
+  } else if (score <= 4) {
     return "Medium Porosity";
   } else {
     return "High Porosity";
