@@ -25,6 +25,11 @@ import PorosityStep from "@/components/steps/PorosityStep";
 import HumidityResponseStep from "@/components/steps/HumidityResponseStep";
 import HairGoalsStep from "@/components/steps/HairGoalsStep";
 import ProfileCreatingStep from "@/components/steps/ProfileCreatingStep";
+import EmailCaptureStep from "@/components/steps/EmailCaptureStep";
+import GoogleAuthStep from "@/components/steps/GoogleAuthStep";
+import { syncToKlaviyo } from "@/app/actions/klaviyo";
+
+
 
 const DARK_GREEN = "#2D5A4A";
 const SAGE = "#95ABA1";
@@ -224,11 +229,19 @@ const QUESTION_STEPS = [
 ];
 
 const TOTAL_QUESTION_STEPS = 6;
-// Index 6 = loading/creating screen (not counted in progress)
-const LOADING_STEP_INDEX = QUESTION_STEPS.length;
+// Screen indices:
+// -1: Welcome
+// 0-5: Questions
+// 6: Google Auth
+// 7: Email Capture
+// 8: Loading/Creating
+const GOOGLE_STEP_INDEX = 6;
+const EMAIL_STEP_INDEX = 7;
+const LOADING_STEP_INDEX = 8;
+
 
 export default function Onboarding() {
-  // -1 = welcome screen, 0-5 = question steps, 6 = loading
+  // -1 = welcome screen, 0-5 = question steps, 6 = email capture, 7 = loading
   const [screen, setScreen] = useState(-1);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -241,29 +254,67 @@ export default function Onboarding() {
 
   const isFirstQuestion = screen === 0;
   const isLastQuestion = screen === TOTAL_QUESTION_STEPS - 1;
+  const isGoogleScreen = screen === GOOGLE_STEP_INDEX;
+  const isEmailScreen = screen === EMAIL_STEP_INDEX;
   const isLoadingScreen = screen === LOADING_STEP_INDEX;
 
-  const currentStep = screen >= 0 && screen < LOADING_STEP_INDEX ? QUESTION_STEPS[screen] : null;
+  const currentStep = screen >= 0 && screen < TOTAL_QUESTION_STEPS ? QUESTION_STEPS[screen] : null;
   const isCurrentStepValid = currentStep ? currentStep.validate(selections) : false;
 
-  const progress = screen >= 0 ? ((screen + 1) / TOTAL_QUESTION_STEPS) * 100 : 0;
+  const progress = screen >= 0 && screen < TOTAL_QUESTION_STEPS ? ((screen + 1) / TOTAL_QUESTION_STEPS) * 100 : 0;
 
   const handleNext = () => {
     if (isLastQuestion) {
-      // Trigger loading screen
-      setScreen(LOADING_STEP_INDEX);
+      if (user) {
+        setScreen(EMAIL_STEP_INDEX);
+      } else {
+        setScreen(GOOGLE_STEP_INDEX);
+      }
     } else {
       setScreen((prev) => prev + 1);
     }
   };
 
+
   const handleBack = () => {
     if (screen > 0) setScreen((prev) => prev - 1);
   };
 
+  const handleEmailComplete = async () => {
+    // 1. Sync to Klaviyo
+    try {
+      const emailToSync = selections.email || user?.email;
+      if (emailToSync) {
+        const klaviyoData = {
+          email: emailToSync,
+          first_name: selections.first_name,
+          country: selections.country,
+          gender: selections.gender,
+          hair_length: selections.hair_length,
+          hair_texture: selections.hair_texture,
+          hair_density: selections.hair_density,
+          porosity_level: calculatePorosityLevel(selections.hair_porosity),
+          humidity_response: selections.humidity_response,
+          hair_goals: selections.hair_goals,
+        };
+        syncToKlaviyo(klaviyoData).catch(err => console.error("Klaviyo background sync failed:", err));
+      }
+    } catch (e) {
+      console.error("Error preparing Klaviyo data:", e);
+    }
+
+    // 2. Advance to loading screen
+    setScreen(LOADING_STEP_INDEX);
+  };
+
+  const handleGoogleComplete = () => {
+    setScreen(EMAIL_STEP_INDEX);
+  };
+
+
   const handleLoadingComplete = useCallback(() => {
-    // Calculate porosity level before saving
-    if (selections.hair_porosity) {
+    // Calculate porosity level before saving if not already done
+    if (selections.hair_porosity && !selections.porosity_level) {
       const level = calculatePorosityLevel(selections.hair_porosity);
       setSelection("porosity_level", level);
     }
@@ -276,6 +327,45 @@ export default function Onboarding() {
   // ── Welcome screen ──────────────────────────────────────────
   if (screen === -1) {
     return <WelcomeScreen onStart={() => setScreen(0)} />;
+  }
+
+  // ── Google auth screen ──────────────────────────────────────
+  if (isGoogleScreen) {
+    return (
+      <Box
+        sx={{
+          height: ["100vh", "100dvh"],
+          display: "flex",
+          flexDirection: "column",
+          bgcolor: LIGHT_BG,
+          overflow: "hidden",
+        }}
+      >
+        <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
+          <GoogleAuthStep onComplete={handleGoogleComplete} onSkip={() => setScreen(EMAIL_STEP_INDEX)} />
+        </Box>
+      </Box>
+    );
+  }
+
+  // ── Email capture screen ────────────────────────────────────
+
+  if (isEmailScreen) {
+    return (
+      <Box
+        sx={{
+          height: ["100vh", "100dvh"],
+          display: "flex",
+          flexDirection: "column",
+          bgcolor: LIGHT_BG,
+          overflow: "hidden",
+        }}
+      >
+        <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
+          <EmailCaptureStep onComplete={handleEmailComplete} />
+        </Box>
+      </Box>
+    );
   }
 
   // ── Loading screen ──────────────────────────────────────────

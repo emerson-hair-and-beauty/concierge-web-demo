@@ -59,6 +59,7 @@ const transformRoutineData = (data) => {
 };
 const initialSelections = {
   // New profile fields
+  email: null,
   first_name: null,
   country: null,
   gender: null,
@@ -120,6 +121,7 @@ const useOnboardingStore = create(
         const { selections } = get();
         const summaryData = {
           // New profile fields
+          email: selections.email,
           first_name: selections.first_name,
           country: selections.country,
           gender: selections.gender,
