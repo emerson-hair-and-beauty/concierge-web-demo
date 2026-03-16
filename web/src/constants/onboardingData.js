@@ -1,5 +1,70 @@
 import React from "react";
-// ... (Your existing Icon imports)
+
+export const GCC_COUNTRIES = [
+  "United Arab Emirates",
+  "Saudi Arabia",
+  "Qatar",
+  "Kuwait",
+  "Bahrain",
+  "Oman",
+  "Jordan",
+  "Egypt",
+  "Lebanon",
+  "Iraq",
+  "Yemen",
+  "Libya",
+  "Morocco",
+  "Tunisia",
+  "Algeria",
+  "Sudan",
+  "Other",
+];
+
+export const HAIR_LENGTH_OPTIONS = [
+  { value: "short", label: "Short", description: "Above chin" },
+  { value: "chin_to_shoulder", label: "Chin to Shoulder", description: "Chin to shoulder length" },
+  { value: "shoulder_to_midback", label: "Shoulder to Mid-Back", description: "Shoulder to mid-back" },
+  { value: "midback_to_waist", label: "Mid-Back to Waist", description: "Mid-back to waist" },
+  { value: "waist_plus", label: "Waist Length or Longer", description: "Waist length or longer" },
+];
+
+export const GENDER_OPTIONS = [
+  { value: "woman", label: "Woman" },
+  { value: "man", label: "Man" },
+  { value: "non_binary", label: "Non-binary" },
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
+];
+
+export const HUMIDITY_RESPONSE_OPTIONS = [
+  {
+    value: "frizzy",
+    label: "Expand and become frizzy",
+    description: "My curls puff up and lose shape in humidity.",
+    icon: "humidity_frizzy",
+  },
+  {
+    value: "lose_definition",
+    label: "Lose definition",
+    description: "My curls fall flat or separate when it's humid.",
+    icon: "humidity_limp",
+  },
+  {
+    value: "stable",
+    label: "Stay mostly the same",
+    description: "Humidity doesn't affect my curls much.",
+    icon: "humidity_stable",
+  },
+];
+
+export const HAIR_GOALS_OPTIONS = [
+  { value: "definition", label: "Long-lasting definition" },
+  { value: "elongation", label: "Elongation" },
+  { value: "moisture", label: "Moisture retention" },
+  { value: "growth", label: "Hair growth & length retention" },
+  { value: "volume", label: "Volume" },
+  { value: "frizz_control", label: "Frizz control" },
+  { value: "scalp_health", label: "Scalp health" },
+];
 
 export const SCALP_OPTIONS = [
   {
@@ -51,28 +116,28 @@ export const DENSITY_OPTIONS = [
 
 export const TEXTURE_OPTIONS = [
   {
-    value: "straight",
-    label: "Straight",
-    description: "Your hair dries straight and rarely forms waves or curls.",
-    icon: "texture_straight",
-  },
-  {
     value: "wavy",
-    label: "Wavy",
-    description: "Your hair forms soft bends or S-shaped waves.",
+    label: "Soft waves",
+    description: "Your hair dries into gentle, flowing S-shaped waves.",
     icon: "texture_wavy",
   },
   {
-    value: "curly",
-    label: "Curly",
-    description: "Your hair forms visible curls or ringlets that spring back when stretched.",
+    value: "loose_curls",
+    label: "Loose curls",
+    description: "Your hair forms clearly defined, springy loops.",
     icon: "texture_curly",
   },
   {
-    value: "coily",
-    label: "Coily",
-    description: "Your hair forms tight coils or zig-zag patterns and appears shorter due to shrinkage.",
+    value: "spring_curls",
+    label: "Spring curls",
+    description: "Tight, bouncy ringlets that spring when stretched.",
     icon: "texture_coily",
+  },
+  {
+    value: "tight_coils",
+    label: "Tight coils",
+    description: "Dense zig-zag or coil patterns with significant shrinkage.",
+    icon: "texture_straight",
   },
 ];
 

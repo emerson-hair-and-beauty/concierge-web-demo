@@ -58,6 +58,14 @@ const transformRoutineData = (data) => {
   };
 };
 const initialSelections = {
+  // New profile fields
+  first_name: null,
+  country: null,
+  gender: null,
+  hair_length: null,
+  humidity_response: null,
+  hair_goals: [],
+  // Existing fields
   scalp_condition: null,
   hair_porosity: {
     q1: null,
@@ -111,6 +119,14 @@ const useOnboardingStore = create(
         if (!uid) return;
         const { selections } = get();
         const summaryData = {
+          // New profile fields
+          first_name: selections.first_name,
+          country: selections.country,
+          gender: selections.gender,
+          hair_length: selections.hair_length,
+          humidity_response: selections.humidity_response,
+          hair_goals: selections.hair_goals || [],
+          // Existing fields
           scalp_condition: selections.scalp_condition,
           hair_density: selections.hair_density,
           hair_porosity: selections.hair_porosity,

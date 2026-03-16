@@ -10,19 +10,51 @@ const generateUUID = () => {
 
 export const useExperienceChat = (userId) => {
   const [sessionId, setSessionId] = useState(null);
-  const INITIAL_MESSAGE = { 
-    role: 'assistant', 
-    content: "Hi! How's your hair feeling today?" 
-  };
-
-  const [messages, setMessages] = useState([INITIAL_MESSAGE]);
+  const [messages, setMessages] = useState([]);
   const [isHandoff, setIsHandoff] = useState(false);
   const [targetVital, setTargetVital] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isWarming, setIsWarming] = useState(true);
 
   useEffect(() => {
     setSessionId(generateUUID());
   }, []);
+
+  // Warm-up: fires once the session is ready. Captures the backend's
+  // personalised greeting (drafted from the user's last session summary)
+  // and sets it as the first message in the conversation.
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let cancelled = false;
+    setIsWarming(true);
+
+    fetch('/api/diagnostic/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: userId || 'anonymous',
+        message: '',
+        session_id: sessionId,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        const greeting = data?.message || "Hi! How's your hair feeling today?";
+        setMessages([{ role: 'assistant', content: greeting }]);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Fallback to a default greeting if warm-up fails
+        setMessages([{ role: 'assistant', content: "Hi! How's your hair feeling today?" }]);
+      })
+      .finally(() => {
+        if (!cancelled) setIsWarming(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [sessionId, userId]);
 
   const sendMessage = useCallback(async (text) => {
     if (!text.trim() || isHandoff) return;
@@ -75,7 +107,7 @@ export const useExperienceChat = (userId) => {
           target_vital: targetVital,
           vital_value: vitalValue,
           conversation_summary: conversationSummary,
-          keywords: [] // Could be extracted from messages if needed
+          keywords: []
         }),
       });
 
@@ -94,15 +126,18 @@ export const useExperienceChat = (userId) => {
         console.error('Failed to reset session on backend:', error);
       }
     }
-    setSessionId(generateUUID());
-    setMessages([INITIAL_MESSAGE]);
+    const newSessionId = generateUUID();
+    setSessionId(newSessionId);
+    setMessages([]);
     setIsHandoff(false);
     setTargetVital(null);
+    setIsWarming(true);
   }, [sessionId]);
 
   return {
     messages,
     isLoading,
+    isWarming,
     isHandoff,
     targetVital,
     sendMessage,

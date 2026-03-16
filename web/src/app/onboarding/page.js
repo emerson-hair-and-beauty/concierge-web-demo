@@ -1,227 +1,466 @@
 "use client";
-import ScalpConditionStep from "@/components/steps/ScalpConditionStep";
-import { Box, Button, LinearProgress, Typography, useTheme, useMediaQuery } from "@mui/material";
+
+import React, { useState, useCallback } from "react";
+import {
+  Box,
+  Button,
+  LinearProgress,
+  Typography,
+  useTheme,
+  useMediaQuery,
+  Fade,
+} from "@mui/material";
 import { typographyStyles } from "../../styles/typographyStyles";
-import HairDensityStep from "@/components/steps/HairDensityStep";
-
-import TreatmentHistoryStep from "@/components/steps/TreatmentHistoryStep";
-import PorosityStep from "@/components/steps/PorosityStep";
-
-import React, { useState } from "react";
-import HairTextureStep from "@/components/steps/HairTextureStep";
 import { useRouter } from "next/navigation";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { useUserData } from "@/hooks/useUserData";
-
-// Define the custom color for easy reuse
-const CUSTOM_COLOR = "#95ABA1";
-
 import { calculatePorosityLevel } from "@/utils/porosityScoring";
 import { POROSITY_QUESTIONS } from "@/constants/onboardingData";
 
+// Steps
+import AboutYouStep from "@/components/steps/AboutYouStep";
+import HairTextureStep from "@/components/steps/HairTextureStep";
+import HairDensityStep from "@/components/steps/HairDensityStep";
+import PorosityStep from "@/components/steps/PorosityStep";
+import HumidityResponseStep from "@/components/steps/HumidityResponseStep";
+import HairGoalsStep from "@/components/steps/HairGoalsStep";
+import ProfileCreatingStep from "@/components/steps/ProfileCreatingStep";
+
+const DARK_GREEN = "#2D5A4A";
+const SAGE = "#95ABA1";
+const LIGHT_BG = "#FDFCF9";
+const SAND_GOLD = "#FFD97B";
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 0: Welcome — no progress bar, full-page splash
+// ─────────────────────────────────────────────────────────────
+function WelcomeScreen({ onStart }) {
+  return (
+    <Fade in timeout={800}>
+      <Box
+        sx={{
+          height: ["100vh", "100dvh"],
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: DARK_GREEN,
+          color: "#FFF",
+          textAlign: "center",
+          px: 3,
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: "-30%",
+            right: "-20%",
+            width: "60vw",
+            height: "60vw",
+            borderRadius: "50%",
+            bgcolor: "rgba(255,255,255,0.04)",
+            pointerEvents: "none",
+          },
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            bottom: "-20%",
+            left: "-15%",
+            width: "50vw",
+            height: "50vw",
+            borderRadius: "50%",
+            bgcolor: "rgba(255,255,255,0.03)",
+            pointerEvents: "none",
+          },
+        }}
+      >
+        {/* Logo */}
+        <Typography
+          sx={{
+            fontWeight: 800,
+            letterSpacing: 3,
+            fontSize: { xs: "0.8rem", md: "0.9rem" },
+            color: SAND_GOLD,
+            mb: 5,
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
+          EMERSON
+        </Typography>
+
+        <Box sx={{ position: "relative", zIndex: 2, maxWidth: 480 }}>
+          <Typography
+            sx={{
+              fontSize: { xs: "2.4rem", md: "3.2rem" },
+              fontWeight: 800,
+              lineHeight: 1.15,
+              letterSpacing: "-0.02em",
+              mb: 2.5,
+            }}
+          >
+            Welcome to{" "}
+            <Box component="span" sx={{ color: SAND_GOLD, fontStyle: "italic", fontWeight: 400 }}>
+              Emerson
+            </Box>
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: { xs: "0.95rem", md: "1.1rem" },
+              color: "rgba(255,255,255,0.75)",
+              lineHeight: 1.7,
+              mb: 2,
+            }}
+          >
+            Where curl care meets intelligence.
+          </Typography>
+
+          <Typography
+            sx={{
+              fontSize: { xs: "0.88rem", md: "1rem" },
+              color: "rgba(255,255,255,0.6)",
+              lineHeight: 1.7,
+              mb: 6,
+              maxWidth: 380,
+              mx: "auto",
+            }}
+          >
+            Create your personalised curl profile and discover exactly what your hair needs.
+          </Typography>
+
+          <Button
+            variant="contained"
+            size="large"
+            onClick={onStart}
+            sx={{
+              bgcolor: SAND_GOLD,
+              color: DARK_GREEN,
+              px: 6,
+              py: 2,
+              borderRadius: "100px",
+              fontWeight: 800,
+              fontSize: "1rem",
+              textTransform: "none",
+              boxShadow: "0 8px 32px rgba(255,217,123,0.35)",
+              "&:hover": {
+                bgcolor: "#ffcf45",
+                transform: "translateY(-2px)",
+                boxShadow: "0 12px 40px rgba(255,217,123,0.45)",
+              },
+              transition: "all 0.25s ease",
+            }}
+          >
+            Create My Curl Profile
+          </Button>
+
+          <Typography
+            sx={{
+              fontSize: "0.75rem",
+              color: "rgba(255,255,255,0.35)",
+              mt: 3,
+            }}
+          >
+            Takes 30–45 seconds
+          </Typography>
+        </Box>
+      </Box>
+    </Fade>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// MAIN ONBOARDING FLOW — steps 1–6 + loading
+// ─────────────────────────────────────────────────────────────
+
+// Steps configuration (these map to "Step X of 6" display)
+const QUESTION_STEPS = [
+  {
+    key: "about_you",
+    title: "About You",
+    stepLabel: 1,
+    component: <AboutYouStep />,
+    validate: (sel) => !!(sel.first_name?.trim() && sel.country && sel.gender && sel.hair_length),
+  },
+  {
+    key: "hair_texture",
+    title: "Curl Pattern",
+    stepLabel: 2,
+    component: <HairTextureStep />,
+    validate: (sel) => !!sel.hair_texture,
+  },
+  {
+    key: "hair_density",
+    title: "Hair Density",
+    stepLabel: 3,
+    component: <HairDensityStep />,
+    validate: (sel) => !!sel.hair_density,
+  },
+  {
+    key: "hair_porosity",
+    title: "Moisture Behaviour",
+    stepLabel: 4,
+    component: <PorosityStep />,
+    validate: (sel) =>
+      sel.hair_porosity &&
+      POROSITY_QUESTIONS.every(
+        (q) => sel.hair_porosity[q.key] !== undefined && sel.hair_porosity[q.key] !== null
+      ),
+  },
+  {
+    key: "humidity_response",
+    title: "Humidity Response",
+    stepLabel: 5,
+    component: <HumidityResponseStep />,
+    validate: (sel) => !!sel.humidity_response,
+  },
+  {
+    key: "hair_goals",
+    title: "Curl Goals",
+    stepLabel: 6,
+    component: <HairGoalsStep />,
+    validate: (sel) => Array.isArray(sel.hair_goals) && sel.hair_goals.length > 0,
+  },
+];
+
+const TOTAL_QUESTION_STEPS = 6;
+// Index 6 = loading/creating screen (not counted in progress)
+const LOADING_STEP_INDEX = QUESTION_STEPS.length;
+
 export default function Onboarding() {
-  const [activeStep, setActiveStep] = useState(0);
+  // -1 = welcome screen, 0-5 = question steps, 6 = loading
+  const [screen, setScreen] = useState(-1);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const router = useRouter();
 
-  // Map active step index -> key used in the onboarding store
-  const STEP_KEYS = [
-    "scalp_condition",
-    "hair_density",
-    "hair_porosity",
-    "is_damaged",
-    "hair_texture",
-  ];
-
-  // read persisted selections from the zustand store
   const selections = useOnboardingStore((s) => s.selections) || {};
   const setSelection = useOnboardingStore((s) => s.setSelection);
   const saveSummary = useOnboardingStore((s) => s.saveSummary);
   const { user } = useUserData();
 
-  // Helper to check if the current step is fully answered
-  const isStepComplete = (key, value) => {
-    if (!value) return false;
-    if (key === "hair_porosity") {
-      // Check if all questions in POROSITY_QUESTIONS have an answer in the value object
-      return POROSITY_QUESTIONS.every(q => value[q.key] !== undefined && value[q.key] !== null);
-    }
-    return true; // Other steps are simple selections
-  };
+  const isFirstQuestion = screen === 0;
+  const isLastQuestion = screen === TOTAL_QUESTION_STEPS - 1;
+  const isLoadingScreen = screen === LOADING_STEP_INDEX;
 
-  // compute whether the current step has a selection
-  const currentStepKey = STEP_KEYS[activeStep];
-  const isSelected = isStepComplete(currentStepKey, selections[currentStepKey]);
+  const currentStep = screen >= 0 && screen < LOADING_STEP_INDEX ? QUESTION_STEPS[screen] : null;
+  const isCurrentStepValid = currentStep ? currentStep.validate(selections) : false;
 
-  const steps = [
-    {
-      title: "Scalp Condition",
-      component: <ScalpConditionStep />,
-    },
-    {
-      title: "Density",
-      component: <HairDensityStep />,
-    },
-    { title: "Porosity", component: <PorosityStep /> },
-    { title: "Treatment History", component: <TreatmentHistoryStep /> },
-    {
-      title: "Hair Texture",
-      component: <HairTextureStep />,
-    },
-  ];
-
-  const isFirstStep = activeStep === 0;
-  const isLastStep = activeStep === steps.length - 1;
-  const totalSteps = steps.length;
-
-  // Calculate progress percentage (activeStep + 1 / totalSteps * 100)
-  const progress = ((activeStep + 1) / totalSteps) * 100;
+  const progress = screen >= 0 ? ((screen + 1) / TOTAL_QUESTION_STEPS) * 100 : 0;
 
   const handleNext = () => {
-    if (!isLastStep) {
-      setActiveStep((prev) => prev + 1);
-    }
-  };
-
-  const handleComplete = () => {
-    if (isLastStep) {
-      // Calculate porosity level
-      const hairPorosity = selections.hair_porosity;
-      if (hairPorosity) {
-        const level = calculatePorosityLevel(hairPorosity);
-        setSelection("porosity_level", level);
-      }
-      
-      // Save summary to Firestore if user is logged in
-      if (user) {
-        saveSummary(user.uid);
-      }
-      
-      router.push("/routine");
+    if (isLastQuestion) {
+      // Trigger loading screen
+      setScreen(LOADING_STEP_INDEX);
+    } else {
+      setScreen((prev) => prev + 1);
     }
   };
 
   const handleBack = () => {
-    if (!isFirstStep) {
-      setActiveStep((prev) => prev - 1);
-    }
+    if (screen > 0) setScreen((prev) => prev - 1);
   };
 
+  const handleLoadingComplete = useCallback(() => {
+    // Calculate porosity level before saving
+    if (selections.hair_porosity) {
+      const level = calculatePorosityLevel(selections.hair_porosity);
+      setSelection("porosity_level", level);
+    }
+    if (user) {
+      saveSummary(user.uid);
+    }
+    router.push("/profile");
+  }, [selections, user, saveSummary, setSelection, router]);
+
+  // ── Welcome screen ──────────────────────────────────────────
+  if (screen === -1) {
+    return <WelcomeScreen onStart={() => setScreen(0)} />;
+  }
+
+  // ── Loading screen ──────────────────────────────────────────
+  if (isLoadingScreen) {
+    return (
+      <Box
+        sx={{
+          height: ["100vh", "100dvh"],
+          display: "flex",
+          flexDirection: "column",
+          bgcolor: LIGHT_BG,
+          overflow: "hidden",
+        }}
+      >
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            px: { xs: 3, md: 6 },
+          }}
+        >
+          <ProfileCreatingStep onComplete={handleLoadingComplete} />
+        </Box>
+      </Box>
+    );
+  }
+
+  // ── Question steps ──────────────────────────────────────────
   return (
-    <Box sx={{ 
-      height: ["100vh", "100dvh"],
-      display: "flex",
-      flexDirection: "column",
-      bgcolor: "#FDFCF9",
-      overflow: "hidden",
-      overflowX: "hidden"
-    }}>
-      {/* 1. Fixed Header: Progress Bar */}
-      <Box sx={{ 
-        width: "100%", 
-        px: { xs: 2, sm: 4, md: 8 }, 
-        pt: { xs: 2, md: 4 }, 
-        pb: 1,
-        flexShrink: 0 
-      }}>
+    <Box
+      sx={{
+        height: ["100vh", "100dvh"],
+        display: "flex",
+        flexDirection: "column",
+        bgcolor: LIGHT_BG,
+        overflow: "hidden",
+        overflowX: "hidden",
+      }}
+    >
+      {/* Header — Progress Bar */}
+      <Box
+        sx={{
+          width: "100%",
+          px: { xs: 2.5, sm: 4, md: 8 },
+          pt: { xs: 2.5, md: 4 },
+          pb: 1.5,
+          flexShrink: 0,
+        }}
+      >
         <Box sx={{ maxWidth: "800px", mx: "auto" }}>
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Box sx={{ flexGrow: 1, mr: 2 }}>
-              <LinearProgress
-                variant="determinate"
-                value={progress}
-                sx={{
-                  height: { xs: 6, md: 8 },
-                  borderRadius: 4,
-                  backgroundColor: "rgba(0,0,0,0.05)",
-                  "& .MuiLinearProgress-bar": {
-                    backgroundColor: "#2D5A4A",
-                    borderRadius: 4,
-                  },
-                }}
-              />
-            </Box>
-            <Box sx={{ minWidth: 40 }}>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{ ...typographyStyles, fontWeight: 600, fontSize: "0.85rem" }}
-              >
-                {`${activeStep + 1}/${totalSteps}`}
-              </Typography>
-            </Box>
-          </Box>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              ...typographyStyles, 
-              color: "#2D5A4A", 
-              fontWeight: 700,
-              fontSize: { xs: "1rem", md: "1.25rem" }
+          {/* Logo + step counter */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1.5,
             }}
           >
-            {steps[activeStep].title}
+            <Typography
+              sx={{
+                fontWeight: 800,
+                letterSpacing: 2,
+                fontSize: "0.8rem",
+                color: DARK_GREEN,
+                opacity: 0.7,
+              }}
+            >
+              EMERSON
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                ...typographyStyles,
+                fontWeight: 600,
+                fontSize: "0.82rem",
+                color: SAGE,
+              }}
+            >
+              Step {currentStep?.stepLabel} of {TOTAL_QUESTION_STEPS}
+            </Typography>
+          </Box>
+
+          {/* Progress bar */}
+          <LinearProgress
+            variant="determinate"
+            value={progress}
+            sx={{
+              height: { xs: 5, md: 6 },
+              borderRadius: 4,
+              bgcolor: "rgba(0,0,0,0.05)",
+              "& .MuiLinearProgress-bar": {
+                bgcolor: DARK_GREEN,
+                borderRadius: 4,
+                transition: "transform 0.4s ease",
+              },
+            }}
+          />
+
+          {/* Step title */}
+          <Typography
+            sx={{
+              ...typographyStyles,
+              color: DARK_GREEN,
+              fontWeight: 600,
+              fontSize: { xs: "0.78rem", md: "0.9rem" },
+              mt: 1,
+              opacity: 0.65,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+            }}
+          >
+            {currentStep?.title}
           </Typography>
         </Box>
       </Box>
 
-      {/* 2. Scrollable Body: Current Step Component */}
-      <Box sx={{ 
-        flexGrow: 1, 
-        overflowY: "auto", 
-        width: "100%",
-        px: { xs: 2, sm: 4, md: 8 },
-        pb: 4,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        WebkitOverflowScrolling: "touch"
-      }}>
-        <Box sx={{ 
-          width: "100%", 
-          maxWidth: "800px",
-          mt: { xs: 1, md: 2 }
-        }}>
-          {steps[activeStep].component}
-        </Box>
+      {/* Scrollable body */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflowY: "auto",
+          width: "100%",
+          px: { xs: 2.5, sm: 4, md: 8 },
+          pb: 4,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        <Fade in key={screen} timeout={350}>
+          <Box
+            sx={{
+              width: "100%",
+              maxWidth: "800px",
+              mt: { xs: 2, md: 3 },
+            }}
+          >
+            {currentStep?.component}
+          </Box>
+        </Fade>
       </Box>
 
-      {/* 3. Anchored Footer: Navigation Buttons */}
-      <Box sx={{ 
-        width: "100%",
-        px: { xs: 2, sm: 4, md: 8 },
-        py: { xs: 2, md: 3 },
-        flexShrink: 0,
-        bgcolor: "#FFF",
-        borderTop: "1px solid rgba(0,0,0,0.05)",
-        boxShadow: "0 -4px 20px rgba(0,0,0,0.02)"
-      }}>
-        <Box sx={{ 
-          maxWidth: "800px", 
-          mx: "auto",
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 2
-        }}>
+      {/* Footer navigation */}
+      <Box
+        sx={{
+          width: "100%",
+          px: { xs: 2.5, sm: 4, md: 8 },
+          py: { xs: 2, md: 2.5 },
+          flexShrink: 0,
+          bgcolor: "#FFF",
+          borderTop: "1px solid rgba(0,0,0,0.05)",
+          boxShadow: "0 -4px 20px rgba(0,0,0,0.02)",
+        }}
+      >
+        <Box
+          sx={{
+            maxWidth: "800px",
+            mx: "auto",
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 2,
+          }}
+        >
           <Button
             onClick={handleBack}
-            disabled={isFirstStep}
+            disabled={isFirstQuestion}
             variant="outlined"
             size={isMobile ? "medium" : "large"}
             sx={{
               minWidth: { xs: "90px", sm: 120 },
-              color: CUSTOM_COLOR,
-              borderColor: CUSTOM_COLOR,
+              color: SAGE,
+              borderColor: SAGE,
               borderRadius: "12px",
               textTransform: "none",
               fontWeight: 600,
               "&:hover": {
-                borderColor: CUSTOM_COLOR,
-                backgroundColor: `${CUSTOM_COLOR}15`,
+                borderColor: SAGE,
+                bgcolor: `${SAGE}15`,
               },
               "&.Mui-disabled": {
-                borderColor: "rgba(0, 0, 0, 0.05)",
+                borderColor: "rgba(0,0,0,0.05)",
               },
             }}
           >
@@ -229,24 +468,27 @@ export default function Onboarding() {
           </Button>
 
           <Button
-            onClick={isLastStep ? handleComplete : handleNext}
+            onClick={handleNext}
             variant="contained"
-            disabled={!isSelected}
+            disabled={!isCurrentStepValid}
             size={isMobile ? "medium" : "large"}
             sx={{
-              minWidth: { xs: "140px", sm: 180 },
+              minWidth: { xs: "160px", sm: 200 },
               borderRadius: "12px",
               textTransform: "none",
               fontWeight: 700,
-              fontSize: { xs: "0.95rem", md: "1rem" },
-              backgroundColor: isSelected ? "#426A5B" : CUSTOM_COLOR,
-              boxShadow: isSelected ? "0 4px 12px rgba(66, 106, 91, 0.2)" : "none",
+              fontSize: { xs: "0.92rem", md: "1rem" },
+              bgcolor: isCurrentStepValid ? DARK_GREEN : SAGE,
+              boxShadow: isCurrentStepValid
+                ? "0 4px 16px rgba(45,90,74,0.25)"
+                : "none",
               "&:hover": {
-                backgroundColor: isSelected ? "#365746" : "#7D948A",
+                bgcolor: isCurrentStepValid ? "#265040" : "#7D948A",
               },
+              transition: "all 0.2s ease",
             }}
           >
-            {isLastStep ? "Complete Analysis" : "Next Step"}
+            {isLastQuestion ? "Create My Curl Profile" : "Next Step"}
           </Button>
         </Box>
       </Box>

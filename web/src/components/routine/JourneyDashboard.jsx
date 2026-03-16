@@ -30,13 +30,24 @@ import CloudIcon from '@mui/icons-material/Cloud';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FlareIcon from '@mui/icons-material/Flare';
 import DoneIcon from '@mui/icons-material/Done';
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { useUserData } from "@/hooks/useUserData";
 import { typographyStyles } from "@/styles/typographyStyles";
 import { useRouter, usePathname } from "next/navigation";
+import { logWashDay } from "@/utils/telemetry";
 
 const DARK_GREEN = "#2D5A4A";
 const MEDIUM_GREEN = "#426A5B";
+
+const getQualitativeLabel = (score) => {
+  if (score >= 9) return "Excellent";
+  if (score >= 7) return "Good";
+  if (score >= 5) return "Fair";
+  if (score >= 3) return "Poor";
+  return "Very Poor";
+};
 
 const BentoCard = ({ title, icon: Icon, children, sx = {}, height = '100%', action, color = DARK_GREEN }) => (
   <Card
@@ -109,7 +120,7 @@ const VitalBarChart = ({ data, color, onPointClick, selectedValue }) => {
           
           return (
             <g key={i} onClick={() => onPointClick(v)} style={{ cursor: 'pointer' }}>
-              <MuiTooltip title={`Score: ${v}`} arrow>
+              <MuiTooltip title={getQualitativeLabel(v)} arrow>
                 <rect
                   x={x}
                   y={getY(v)}
@@ -127,11 +138,12 @@ const VitalBarChart = ({ data, color, onPointClick, selectedValue }) => {
                   x={x + barWidth / 2} 
                   y={getY(v) - 8} 
                   textAnchor="middle" 
-                  fontSize="10" 
+                  fontSize="9" 
                   fontWeight="700" 
                   fill={color}
+                  style={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
                 >
-                  {v}
+                  {getQualitativeLabel(v)}
                 </text>
               )}
             </g>
@@ -164,6 +176,36 @@ const MOCK_VITALS = {
     history: [7, 4, 6, 5, 7, 4, 6]
   }
 };
+  
+const MOCK_HISTORY = [
+  { target_vital: 'moisture', vital_value: 8, created_at: new Date().toISOString() },
+  { target_vital: 'strength', vital_value: 9, created_at: new Date().toISOString() },
+  { target_vital: 'definition', vital_value: 7, created_at: new Date().toISOString() }
+];
+
+const MOCK_ALERTS = [
+  {
+    id: 1,
+    type: 'Weather Alert',
+    message: "High humidity detected (78%). Since it's Day 3, applying a light sealing oil will help prevent frizz.",
+    color: '#D32F2F',
+    icon: ErrorOutlineIcon
+  },
+  {
+    id: 2,
+    type: 'Maintenance',
+    message: "It's been 4 days since your last full wash. We recommend a scalp refresh tonight.",
+    color: '#1976D2',
+    icon: CalendarMonthIcon
+  },
+  {
+    id: 3,
+    type: 'Product Tip',
+    message: "Your recent moisture scores are trending lower. Try a deep conditioner in your next session.",
+    color: '#2D5A4A',
+    icon: WaterDropIcon
+  }
+];
 
 export default function JourneyDashboard() {
   const router = useRouter();
@@ -177,6 +219,9 @@ export default function JourneyDashboard() {
   const [loggedToday, setLoggedToday] = useState(false);
   const [activeVitalTab, setActiveVitalTab] = useState(0);
   const [selectedPointValue, setSelectedPointValue] = useState(null);
+  const [alertIndex, setAlertIndex] = useState(0);
+
+  const activeAlert = MOCK_ALERTS[alertIndex];
 
   const isInsightsPage = pathname === '/routine/insights';
 
@@ -198,7 +243,11 @@ export default function JourneyDashboard() {
       fetch(`/api/diagnostic/history?userId=${fetchId}`)
         .then(res => res.json())
         .then(data => {
-            if (Array.isArray(data)) setHistory(data.slice(0, 5));
+            if (Array.isArray(data) && data.length > 0) {
+              setHistory(data.slice(0, 5));
+            } else {
+              setHistory(MOCK_HISTORY);
+            }
         })
         .finally(() => setIsLoadingHistory(false));
 
@@ -256,6 +305,95 @@ export default function JourneyDashboard() {
             {/* INSIGHTS VIEW (Apple Health Evolution) */}
             {isInsightsPage && (
               <Grid item xs={12}>
+                {/* MOCK SCENARIO ALERT CAROUSEL */}
+                <Fade in key={alertIndex} timeout={800}>
+                  <Box sx={{ 
+                    mb: 3, 
+                    p: { xs: 2, sm: 2.5 }, 
+                    borderRadius: 6, 
+                    background: alpha(activeAlert.color, 0.04),
+                    color: activeAlert.color,
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    gap: { xs: 2, sm: 2 },
+                    border: '1px solid',
+                    borderColor: alpha(activeAlert.color, 0.1),
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: { xs: '100%', sm: 'auto' } }}>
+                      <Avatar sx={{ bgcolor: alpha(activeAlert.color, 0.1), color: activeAlert.color, width: 36, height: 36, flexShrink: 0 }}>
+                        <activeAlert.icon sx={{ fontSize: 20 }} />
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="overline" sx={{ fontWeight: 800, letterSpacing: 1.5, textTransform: 'uppercase', opacity: 0.8, mb: 0.3, display: 'block', lineHeight: 1, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
+                          {activeAlert.type}
+                        </Typography>
+                        <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                           <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem', color: activeAlert.color }}>
+                              {activeAlert.message}
+                           </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: { xs: 'none', sm: 'block' }, flexGrow: 1 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem', color: activeAlert.color }}>
+                        {activeAlert.message}
+                      </Typography>
+                    </Box>
+
+                    <Stack 
+                      direction="row" 
+                      spacing={1} 
+                      alignItems="center" 
+                      sx={{ 
+                        width: { xs: '100%', sm: 'auto' }, 
+                        justifyContent: { xs: 'space-between', sm: 'flex-end' },
+                        mt: { xs: 0.5, sm: 0 },
+                        pt: { xs: 1, sm: 0 },
+                        borderTop: { xs: `1px solid ${alpha(activeAlert.color, 0.1)}`, sm: 'none' }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', gap: 0.8 }}>
+                        {MOCK_ALERTS.map((_, i) => (
+                          <Box 
+                            key={i} 
+                            onClick={() => setAlertIndex(i)}
+                            sx={{ 
+                              width: 6, 
+                              height: 6, 
+                              borderRadius: '50%', 
+                              bgcolor: i === alertIndex ? activeAlert.color : alpha(activeAlert.color, 0.2),
+                              cursor: 'pointer',
+                              transition: 'all 0.3s ease'
+                            }} 
+                          />
+                        ))}
+                      </Box>
+                      <Button 
+                        size="small" 
+                        onClick={() => setAlertIndex((prev) => (prev + 1) % MOCK_ALERTS.length)}
+                        sx={{ 
+                          color: activeAlert.color, 
+                          fontWeight: 700, 
+                          textTransform: 'none',
+                          fontSize: '0.75rem',
+                          minWidth: 'auto',
+                          px: 2,
+                          borderRadius: 100,
+                          border: '1px solid',
+                          borderColor: alpha(activeAlert.color, 0.2),
+                          '&:hover': { bgcolor: alpha(activeAlert.color, 0.05) }
+                        }}
+                      >
+                        Next Advice
+                      </Button>
+                    </Stack>
+                  </Box>
+                </Fade>
+
                 <BentoCard 
                   title="Vitals Details" 
                   icon={currentVital.icon} 
@@ -285,14 +423,14 @@ export default function JourneyDashboard() {
                       <Box>
                         <Stack direction="row" alignItems="baseline" spacing={1}>
                           <Typography variant="h4" sx={{ fontWeight: 800, color: DARK_GREEN, letterSpacing: -1 }}>
-                            {selectedPointValue !== null ? selectedPointValue : (vitals?.[currentVital.key]?.latest || '--')}
+                            {selectedPointValue !== null ? getQualitativeLabel(selectedPointValue) : (vitals?.[currentVital.key]?.latest ? getQualitativeLabel(vitals[currentVital.key].latest) : '--')}
                           </Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, opacity: 0.6 }}>
-                            Score
+                            Status
                           </Typography>
                         </Stack>
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, mt: 0.5, display: 'block' }}>
-                          Average: {vitals?.[currentVital.key]?.average || '--'}
+                          Average: {vitals?.[currentVital.key]?.average ? getQualitativeLabel(Math.round(vitals[currentVital.key].average)) : '--'}
                         </Typography>
                       </Box>
                       {selectedPointValue !== null && (
@@ -392,7 +530,17 @@ export default function JourneyDashboard() {
                   <Button 
                     variant="contained" 
                     fullWidth
-                    onClick={() => setLoggedToday(true)}
+                    onClick={async () => {
+                      setLoggedToday(true);
+                      if (user?.uid) {
+                        const success = await logWashDay(user.uid);
+                        if (!success) {
+                          // Optionally revert state or show error, 
+                          // but usually quiet failure is better for UX in "background" telemetry
+                          console.error("Failed to log wash day to backend");
+                        }
+                      }
+                    }}
                     startIcon={loggedToday ? <DoneIcon sx={{ fontSize: 14 }} /> : null}
                     sx={{ 
                       bgcolor: loggedToday ? DARK_GREEN : alpha(DARK_GREEN, 0.03),
@@ -440,11 +588,11 @@ export default function JourneyDashboard() {
                   border: '1px solid rgba(255,255,255,0.4)',
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 0.5 }}>
-                    <FlareIcon sx={{ fontSize: 14 }} />
-                    <Typography variant="caption" sx={{ fontWeight: 700 }}>72°F · Clear</Typography>
+                    <CloudIcon sx={{ fontSize: 14 }} />
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>72°F · High Humidity</Typography>
                   </Box>
                   <Typography variant="caption" sx={{ fontWeight: 400, lineHeight: 1.4, display: 'block', opacity: 0.8, fontSize: '0.65rem' }}>
-                    {weatherAdvice[porosity] || weatherAdvice['Normal']}
+                    {weatherAdvice['High']}
                   </Typography>
                 </Box>
               </BentoCard>
@@ -472,7 +620,7 @@ export default function JourneyDashboard() {
                               {event.target_vital?.toUpperCase()} CHECK
                             </Typography>
                             <Typography variant="caption" sx={{ opacity: 0.5, fontSize: '0.6rem' }}>
-                              Score: {event.vital_value}/10
+                              Status: {getQualitativeLabel(event.vital_value)}
                             </Typography>
                           </Box>
                         </Box>
