@@ -66,6 +66,7 @@ const initialSelections = {
   hair_length: null,
   humidity_response: null,
   hair_goals: [],
+  hair_photo_url: null,
   // Existing fields
   scalp_condition: null,
   hair_porosity: {
@@ -128,6 +129,7 @@ const useOnboardingStore = create(
           hair_length: selections.hair_length,
           humidity_response: selections.humidity_response,
           hair_goals: selections.hair_goals || [],
+          hair_photo_url: selections.hair_photo_url || null,
           // Existing fields
           scalp_condition: selections.scalp_condition,
           hair_density: selections.hair_density,

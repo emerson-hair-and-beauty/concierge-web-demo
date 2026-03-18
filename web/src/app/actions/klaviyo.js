@@ -25,6 +25,7 @@ export async function syncToKlaviyo(profileData) {
     porosity_level,
     humidity_response,
     hair_goals,
+    hair_photo_url,
   } = profileData;
 
   const headers = {
@@ -56,6 +57,7 @@ export async function syncToKlaviyo(profileData) {
               "Moisture Behaviour": porosity_level,
               "Humidity Response": humidity_response,
               "Hair Goals": hair_goals,
+              "Hair Photo": hair_photo_url,
             },
           },
         },
@@ -95,6 +97,7 @@ export async function syncToKlaviyo(profileData) {
                   "Moisture Behaviour": porosity_level,
                   "Humidity Response": humidity_response,
                   "Hair Goals": hair_goals,
+                  "Hair Photo": hair_photo_url,
                 },
               },
             },

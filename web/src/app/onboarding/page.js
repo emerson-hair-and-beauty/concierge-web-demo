@@ -25,11 +25,9 @@ import PorosityStep from "@/components/steps/PorosityStep";
 import HumidityResponseStep from "@/components/steps/HumidityResponseStep";
 import HairGoalsStep from "@/components/steps/HairGoalsStep";
 import ProfileCreatingStep from "@/components/steps/ProfileCreatingStep";
-import EmailCaptureStep from "@/components/steps/EmailCaptureStep";
 import GoogleAuthStep from "@/components/steps/GoogleAuthStep";
+import PhotoUploadStep from "@/components/steps/PhotoUploadStep";
 import { syncToKlaviyo } from "@/app/actions/klaviyo";
-
-
 
 const DARK_GREEN = "#2D5A4A";
 const SAGE = "#95ABA1";
@@ -79,7 +77,6 @@ function WelcomeScreen({ onStart }) {
           },
         }}
       >
-        {/* Logo */}
         <Typography
           sx={{
             fontWeight: 800,
@@ -175,10 +172,9 @@ function WelcomeScreen({ onStart }) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// MAIN ONBOARDING FLOW — steps 1–6 + loading
+// MAIN ONBOARDING FLOW
 // ─────────────────────────────────────────────────────────────
 
-// Steps configuration (these map to "Step X of 6" display)
 const QUESTION_STEPS = [
   {
     key: "about_you",
@@ -188,23 +184,30 @@ const QUESTION_STEPS = [
     validate: (sel) => !!(sel.first_name?.trim() && sel.country && sel.gender && sel.hair_length),
   },
   {
+    key: "photo_upload",
+    title: "Hair Photo",
+    stepLabel: 2,
+    component: <PhotoUploadStep />,
+    validate: (sel) => true, // Optional step
+  },
+  {
     key: "hair_texture",
     title: "Curl Pattern",
-    stepLabel: 2,
+    stepLabel: 3,
     component: <HairTextureStep />,
     validate: (sel) => !!sel.hair_texture,
   },
   {
     key: "hair_density",
     title: "Hair Density",
-    stepLabel: 3,
+    stepLabel: 4,
     component: <HairDensityStep />,
     validate: (sel) => !!sel.hair_density,
   },
   {
     key: "hair_porosity",
     title: "Moisture Behaviour",
-    stepLabel: 4,
+    stepLabel: 5,
     component: <PorosityStep />,
     validate: (sel) =>
       sel.hair_porosity &&
@@ -215,33 +218,24 @@ const QUESTION_STEPS = [
   {
     key: "humidity_response",
     title: "Humidity Response",
-    stepLabel: 5,
+    stepLabel: 6,
     component: <HumidityResponseStep />,
     validate: (sel) => !!sel.humidity_response,
   },
   {
     key: "hair_goals",
     title: "Curl Goals",
-    stepLabel: 6,
+    stepLabel: 7,
     component: <HairGoalsStep />,
     validate: (sel) => Array.isArray(sel.hair_goals) && sel.hair_goals.length > 0,
   },
 ];
 
-const TOTAL_QUESTION_STEPS = 6;
-// Screen indices:
-// -1: Welcome
-// 0-5: Questions
-// 6: Google Auth
-// 7: Email Capture
-// 8: Loading/Creating
-const GOOGLE_STEP_INDEX = 6;
-const EMAIL_STEP_INDEX = 7;
+const TOTAL_QUESTION_STEPS = 7;
+const GOOGLE_STEP_INDEX = 7;
 const LOADING_STEP_INDEX = 8;
 
-
 export default function Onboarding() {
-  // -1 = welcome screen, 0-5 = question steps, 6 = email capture, 7 = loading
   const [screen, setScreen] = useState(-1);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -255,7 +249,6 @@ export default function Onboarding() {
   const isFirstQuestion = screen === 0;
   const isLastQuestion = screen === TOTAL_QUESTION_STEPS - 1;
   const isGoogleScreen = screen === GOOGLE_STEP_INDEX;
-  const isEmailScreen = screen === EMAIL_STEP_INDEX;
   const isLoadingScreen = screen === LOADING_STEP_INDEX;
 
   const currentStep = screen >= 0 && screen < TOTAL_QUESTION_STEPS ? QUESTION_STEPS[screen] : null;
@@ -266,7 +259,7 @@ export default function Onboarding() {
   const handleNext = () => {
     if (isLastQuestion) {
       if (user) {
-        setScreen(EMAIL_STEP_INDEX);
+        handleSyncAndProgress();
       } else {
         setScreen(GOOGLE_STEP_INDEX);
       }
@@ -275,15 +268,9 @@ export default function Onboarding() {
     }
   };
 
-
-  const handleBack = () => {
-    if (screen > 0) setScreen((prev) => prev - 1);
-  };
-
-  const handleEmailComplete = async () => {
-    // 1. Sync to Klaviyo
+  const handleSyncAndProgress = async (authUser = null) => {
     try {
-      const emailToSync = selections.email || user?.email;
+      const emailToSync = authUser?.email || user?.email;
       if (emailToSync) {
         const klaviyoData = {
           email: emailToSync,
@@ -296,24 +283,25 @@ export default function Onboarding() {
           porosity_level: calculatePorosityLevel(selections.hair_porosity),
           humidity_response: selections.humidity_response,
           hair_goals: selections.hair_goals,
+          hair_photo_url: selections.hair_photo_url || null,
         };
-        syncToKlaviyo(klaviyoData).catch(err => console.error("Klaviyo background sync failed:", err));
+        syncToKlaviyo(klaviyoData).catch(err => console.error("Klaviyo sync failed:", err));
       }
     } catch (e) {
       console.error("Error preparing Klaviyo data:", e);
     }
-
-    // 2. Advance to loading screen
     setScreen(LOADING_STEP_INDEX);
   };
 
-  const handleGoogleComplete = () => {
-    setScreen(EMAIL_STEP_INDEX);
+  const handleBack = () => {
+    if (screen > 0) setScreen((prev) => prev - 1);
   };
 
+  const handleGoogleComplete = (authUser) => {
+    handleSyncAndProgress(authUser);
+  };
 
   const handleLoadingComplete = useCallback(() => {
-    // Calculate porosity level before saving if not already done
     if (selections.hair_porosity && !selections.porosity_level) {
       const level = calculatePorosityLevel(selections.hair_porosity);
       setSelection("porosity_level", level);
@@ -324,262 +312,57 @@ export default function Onboarding() {
     router.push("/profile");
   }, [selections, user, saveSummary, setSelection, router]);
 
-  // ── Welcome screen ──────────────────────────────────────────
+  // Welcome Screen
   if (screen === -1) {
     return <WelcomeScreen onStart={() => setScreen(0)} />;
   }
 
-  // ── Google auth screen ──────────────────────────────────────
+  // Google Auth Screen
   if (isGoogleScreen) {
     return (
-      <Box
-        sx={{
-          height: ["100vh", "100dvh"],
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: LIGHT_BG,
-          overflow: "hidden",
-        }}
-      >
+      <Box sx={{ height: ["100vh", "100dvh"], display: "flex", flexDirection: "column", bgcolor: LIGHT_BG, overflow: "hidden" }}>
         <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
-          <GoogleAuthStep onComplete={handleGoogleComplete} onSkip={() => setScreen(EMAIL_STEP_INDEX)} />
+          <GoogleAuthStep onComplete={handleGoogleComplete} />
         </Box>
       </Box>
     );
   }
 
-  // ── Email capture screen ────────────────────────────────────
-
-  if (isEmailScreen) {
-    return (
-      <Box
-        sx={{
-          height: ["100vh", "100dvh"],
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: LIGHT_BG,
-          overflow: "hidden",
-        }}
-      >
-        <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", px: 3 }}>
-          <EmailCaptureStep onComplete={handleEmailComplete} />
-        </Box>
-      </Box>
-    );
-  }
-
-  // ── Loading screen ──────────────────────────────────────────
+  // Loading Screen
   if (isLoadingScreen) {
     return (
-      <Box
-        sx={{
-          height: ["100vh", "100dvh"],
-          display: "flex",
-          flexDirection: "column",
-          bgcolor: LIGHT_BG,
-          overflow: "hidden",
-        }}
-      >
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            px: { xs: 3, md: 6 },
-          }}
-        >
+      <Box sx={{ height: ["100vh", "100dvh"], display: "flex", flexDirection: "column", bgcolor: LIGHT_BG, overflow: "hidden" }}>
+        <Box sx={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", px: { xs: 3, md: 6 } }}>
           <ProfileCreatingStep onComplete={handleLoadingComplete} />
         </Box>
       </Box>
     );
   }
 
-  // ── Question steps ──────────────────────────────────────────
+  // Question Steps
   return (
-    <Box
-      sx={{
-        height: ["100vh", "100dvh"],
-        display: "flex",
-        flexDirection: "column",
-        bgcolor: LIGHT_BG,
-        overflow: "hidden",
-        overflowX: "hidden",
-      }}
-    >
-      {/* Header — Progress Bar */}
-      <Box
-        sx={{
-          width: "100%",
-          px: { xs: 2.5, sm: 4, md: 8 },
-          pt: { xs: 2.5, md: 4 },
-          pb: 1.5,
-          flexShrink: 0,
-        }}
-      >
+    <Box sx={{ height: ["100vh", "100dvh"], display: "flex", flexDirection: "column", bgcolor: LIGHT_BG, overflow: "hidden" }}>
+      <Box sx={{ width: "100%", px: { xs: 2.5, sm: 4, md: 8 }, pt: { xs: 2.5, md: 4 }, pb: 1.5, flexShrink: 0 }}>
         <Box sx={{ maxWidth: "800px", mx: "auto" }}>
-          {/* Logo + step counter */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              mb: 1.5,
-            }}
-          >
-            <Typography
-              sx={{
-                fontWeight: 800,
-                letterSpacing: 2,
-                fontSize: "0.8rem",
-                color: DARK_GREEN,
-                opacity: 0.7,
-              }}
-            >
-              EMERSON
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                ...typographyStyles,
-                fontWeight: 600,
-                fontSize: "0.82rem",
-                color: SAGE,
-              }}
-            >
-              Step {currentStep?.stepLabel} of {TOTAL_QUESTION_STEPS}
-            </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+            <Typography sx={{ fontWeight: 800, letterSpacing: 2, fontSize: "0.8rem", color: DARK_GREEN, opacity: 0.7 }}>EMERSON</Typography>
+            <Typography variant="body2" sx={{ ...typographyStyles, fontWeight: 600, fontSize: "0.82rem", color: SAGE }}>Step {currentStep?.stepLabel} of {TOTAL_QUESTION_STEPS}</Typography>
           </Box>
-
-          {/* Progress bar */}
-          <LinearProgress
-            variant="determinate"
-            value={progress}
-            sx={{
-              height: { xs: 5, md: 6 },
-              borderRadius: 4,
-              bgcolor: "rgba(0,0,0,0.05)",
-              "& .MuiLinearProgress-bar": {
-                bgcolor: DARK_GREEN,
-                borderRadius: 4,
-                transition: "transform 0.4s ease",
-              },
-            }}
-          />
-
-          {/* Step title */}
-          <Typography
-            sx={{
-              ...typographyStyles,
-              color: DARK_GREEN,
-              fontWeight: 600,
-              fontSize: { xs: "0.78rem", md: "0.9rem" },
-              mt: 1,
-              opacity: 0.65,
-              letterSpacing: "0.04em",
-              textTransform: "uppercase",
-            }}
-          >
-            {currentStep?.title}
-          </Typography>
+          <LinearProgress variant="determinate" value={progress} sx={{ height: { xs: 5, md: 6 }, borderRadius: 4, bgcolor: "rgba(0,0,0,0.05)", "& .MuiLinearProgress-bar": { bgcolor: DARK_GREEN, borderRadius: 4, transition: "transform 0.4s ease" } }} />
+          <Typography sx={{ ...typographyStyles, color: DARK_GREEN, fontWeight: 600, fontSize: { xs: "0.78rem", md: "0.9rem" }, mt: 1, opacity: 0.65, letterSpacing: "0.04em", textTransform: "uppercase" }}>{currentStep?.title}</Typography>
         </Box>
       </Box>
 
-      {/* Scrollable body */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          overflowY: "auto",
-          width: "100%",
-          px: { xs: 2.5, sm: 4, md: 8 },
-          pb: 4,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          WebkitOverflowScrolling: "touch",
-        }}
-      >
+      <Box sx={{ flexGrow: 1, overflowY: "auto", width: "100%", px: { xs: 2.5, sm: 4, md: 8 }, pb: 4, display: "flex", flexDirection: "column", alignItems: "center" }}>
         <Fade in key={screen} timeout={350}>
-          <Box
-            sx={{
-              width: "100%",
-              maxWidth: "800px",
-              mt: { xs: 2, md: 3 },
-            }}
-          >
-            {currentStep?.component}
-          </Box>
+          <Box sx={{ width: "100%", maxWidth: "800px", mt: { xs: 2, md: 3 } }}>{currentStep?.component}</Box>
         </Fade>
       </Box>
 
-      {/* Footer navigation */}
-      <Box
-        sx={{
-          width: "100%",
-          px: { xs: 2.5, sm: 4, md: 8 },
-          py: { xs: 2, md: 2.5 },
-          flexShrink: 0,
-          bgcolor: "#FFF",
-          borderTop: "1px solid rgba(0,0,0,0.05)",
-          boxShadow: "0 -4px 20px rgba(0,0,0,0.02)",
-        }}
-      >
-        <Box
-          sx={{
-            maxWidth: "800px",
-            mx: "auto",
-            display: "flex",
-            justifyContent: "space-between",
-            gap: 2,
-          }}
-        >
-          <Button
-            onClick={handleBack}
-            disabled={isFirstQuestion}
-            variant="outlined"
-            size={isMobile ? "medium" : "large"}
-            sx={{
-              minWidth: { xs: "90px", sm: 120 },
-              color: SAGE,
-              borderColor: SAGE,
-              borderRadius: "12px",
-              textTransform: "none",
-              fontWeight: 600,
-              "&:hover": {
-                borderColor: SAGE,
-                bgcolor: `${SAGE}15`,
-              },
-              "&.Mui-disabled": {
-                borderColor: "rgba(0,0,0,0.05)",
-              },
-            }}
-          >
-            Previous
-          </Button>
-
-          <Button
-            onClick={handleNext}
-            variant="contained"
-            disabled={!isCurrentStepValid}
-            size={isMobile ? "medium" : "large"}
-            sx={{
-              minWidth: { xs: "160px", sm: 200 },
-              borderRadius: "12px",
-              textTransform: "none",
-              fontWeight: 700,
-              fontSize: { xs: "0.92rem", md: "1rem" },
-              bgcolor: isCurrentStepValid ? DARK_GREEN : SAGE,
-              boxShadow: isCurrentStepValid
-                ? "0 4px 16px rgba(45,90,74,0.25)"
-                : "none",
-              "&:hover": {
-                bgcolor: isCurrentStepValid ? "#265040" : "#7D948A",
-              },
-              transition: "all 0.2s ease",
-            }}
-          >
-            {isLastQuestion ? "Create My Curl Profile" : "Next Step"}
-          </Button>
+      <Box sx={{ width: "100%", px: { xs: 2.5, sm: 4, md: 8 }, py: { xs: 2, md: 2.5 }, flexShrink: 0, bgcolor: "#FFF", borderTop: "1px solid rgba(0,0,0,0.05)", boxShadow: "0 -4px 20px rgba(0,0,0,0.02)" }}>
+        <Box sx={{ maxWidth: "800px", mx: "auto", display: "flex", justifyContent: "space-between", gap: 2 }}>
+          <Button onClick={handleBack} disabled={isFirstQuestion} variant="outlined" size={isMobile ? "medium" : "large"} sx={{ minWidth: { xs: "90px", sm: 120 }, color: SAGE, borderColor: SAGE, borderRadius: "12px", textTransform: "none", fontWeight: 600 }}>Previous</Button>
+          <Button onClick={handleNext} variant="contained" disabled={!isCurrentStepValid} size={isMobile ? "medium" : "large"} sx={{ minWidth: { xs: "160px", sm: 200 }, borderRadius: "12px", textTransform: "none", fontWeight: 700, fontSize: { xs: "0.92rem", md: "1rem" }, bgcolor: isCurrentStepValid ? DARK_GREEN : SAGE }}>{isLastQuestion ? "Create My Curl Profile" : "Next Step"}</Button>
         </Box>
       </Box>
     </Box>

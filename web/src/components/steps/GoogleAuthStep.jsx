@@ -8,14 +8,14 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 
 const DARK_GREEN = "#2D5A4A";
 
-export default function GoogleAuthStep({ onComplete, onSkip }) {
+export default function GoogleAuthStep({ onComplete }) {
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      await signInWithGoogle();
-      if (onComplete) onComplete();
+      const user = await signInWithGoogle();
+      if (onComplete) onComplete(user);
     } catch (error) {
       console.error("Google sign in failed:", error);
     } finally {
@@ -73,27 +73,7 @@ export default function GoogleAuthStep({ onComplete, onSkip }) {
       >
         {loading ? "Signing in..." : "Continue with Google"}
       </Button>
-
-      <Button
-        fullWidth
-        variant="text"
-        onClick={onSkip}
-        endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
-        sx={{
-          color: DARK_GREEN,
-          textTransform: "none",
-          fontWeight: 600,
-          fontSize: "0.95rem",
-          opacity: 0.8,
-          "&:hover": {
-            opacity: 1,
-            bgcolor: "transparent",
-            textDecoration: "underline",
-          },
-        }}
-      >
-        Continue with email instead
-      </Button>
     </Box>
   );
 }
+
