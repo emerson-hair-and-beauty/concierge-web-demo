@@ -4,7 +4,9 @@ import CustomRoutine from "@/components/custom-routine/CustomRoutine";
 import ExperienceChat from "@/components/routine/ExperienceChat";
 import TerminalUI from "@/components/onboarding/TerminalUI";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
-import { Container, Box, Typography, LinearProgress, Paper, Fade } from "@mui/material";
+import { Container, Box, Typography, LinearProgress, Paper, Fade, Button, Tooltip } from "@mui/material";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import ScienceIcon from "@mui/icons-material/Science";
 import { styled, keyframes } from "@mui/material/styles";
 
 const pulse = keyframes`
@@ -37,7 +39,9 @@ const ThinkingBox = styled(Paper)(({ theme }) => ({
 export default function RoutineResult() {
   const selections = useOnboardingStore((s) => s.selections) || {};
   const generateRoutine = useOnboardingStore((s) => s.generateRoutine);
+  const clearRoutine = useOnboardingStore((s) => s.clearRoutine);
   const [progress, setProgress] = useState(0);
+  const isDev = process.env.NODE_ENV === "development";
   
   const { apiRoutine, isGeneratingRoutine, thinkingText, generationError } = selections;
 
@@ -165,6 +169,62 @@ export default function RoutineResult() {
         </Box>
       )}
       <CustomRoutine routine={apiRoutine} />
+      
+      {isDev && (
+        <Box sx={{ 
+          position: 'fixed', 
+          bottom: 24, 
+          right: 24, 
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          gap: 1
+        }}>
+          <Typography variant="caption" sx={{ 
+            bgcolor: 'rgba(45, 90, 74, 0.9)', 
+            color: 'white', 
+            px: 1.5, 
+            py: 0.5, 
+            borderRadius: '10px',
+            fontSize: '0.65rem',
+            fontWeight: 800,
+            letterSpacing: 1,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+          }}>
+            DEV MODE
+          </Typography>
+          <Tooltip title="Clear routine and start generation again" placement="left">
+            <Button
+              variant="contained"
+              startIcon={<RefreshIcon />}
+              onClick={() => {
+                clearRoutine();
+                // Note: The page's useEffect will automatically trigger generateRoutine() 
+                // because apiRoutine becomes null and isGeneratingRoutine is false.
+              }}
+              disabled={isGeneratingRoutine}
+              sx={{
+                bgcolor: '#2D5A4A',
+                color: 'white',
+                borderRadius: '100px',
+                px: 3,
+                py: 1.5,
+                fontWeight: 700,
+                textTransform: 'none',
+                boxShadow: '0 8px 32px rgba(45, 90, 74, 0.3)',
+                '&:hover': {
+                  bgcolor: '#1A342B',
+                  transform: 'translateY(-2px)',
+                },
+                transition: 'all 0.2s ease',
+              }}
+            >
+              Re-Generate Routine
+            </Button>
+          </Tooltip>
+        </Box>
+      )}
     </Container>
   );
 }

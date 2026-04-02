@@ -101,6 +101,16 @@ const useOnboardingStore = create(
 
       resetSelections: () => set({ selections: { ...initialSelections } }),
 
+      clearRoutine: () => set((state) => ({
+        selections: {
+          ...state.selections,
+          apiRoutine: null,
+          generationError: null,
+          debugLogs: [],
+          thinkingText: ""
+        }
+      })),
+
       injectTestData: () => set((state) => ({
         selections: {
           ...initialSelections,
