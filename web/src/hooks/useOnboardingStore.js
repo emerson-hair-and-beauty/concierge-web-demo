@@ -61,27 +61,27 @@ const initialSelections = {
   // New profile fields
   email: null,
   first_name: null,
-  country: null,
+  location: null, // Unified location field
   gender: null,
   hair_length: null,
-  humidity_response: null,
-  hair_goals: [],
+  humidity_response: null, // "Frizz", "Limp", "No Effect"
+  hair_goals: [], // Multi-select list
   hair_photo_url: null,
-  // Existing fields
-  scalp_condition: null,
+  // Core Hair Traits (OrchestratorInput)
+  texture: null, // "Type 2", "Type 3", "Type 4"
+  density: null, // "Low", "Medium", "High"
+  moisture_behaviour: null, // "Low Porosity", "Medium Porosity", "High Porosity"
+  
+  // Temporary storage for survey answers
   hair_porosity: {
-    q1: null,
     q2: null,
     q3: null,
     q4: null,
-    q5: null,
-    q6: null,
-    q7: null,
   },
-  hair_texture: null,
-  hair_density: null,
+  
+  // Legacy / Internal fields
+  scalp_condition: null,
   is_damaged: null,
-  porosity_level: null,
   apiRoutine: null,
   isGeneratingRoutine: false,
   thinkingText: "",
@@ -104,14 +104,13 @@ const useOnboardingStore = create(
       injectTestData: () => set((state) => ({
         selections: {
           ...initialSelections,
-          scalp_condition: "Dry",
-          hair_porosity: {
-            q1: "Yes", q2: "No", q3: "Yes", q4: "No", q5: "Yes", q6: "No", q7: "Yes"
-          },
-          hair_texture: "Wavy",
-          hair_density: "Medium",
-          is_damaged: "No",
-          porosity_level: "High Porosity",
+          first_name: "Jane",
+          location: "Dubai, UAE",
+          texture: "Type 3C",
+          density: "High",
+          moisture_behaviour: "High Porosity",
+          humidity_response: "Frizz",
+          hair_goals: ["Volume", "Definition"],
         }
       })),
 
@@ -121,22 +120,19 @@ const useOnboardingStore = create(
         if (!uid) return;
         const { selections } = get();
         const summaryData = {
-          // New profile fields
           email: selections.email,
           first_name: selections.first_name,
-          country: selections.country,
+          location: selections.location,
           gender: selections.gender,
           hair_length: selections.hair_length,
           humidity_response: selections.humidity_response,
           hair_goals: selections.hair_goals || [],
           hair_photo_url: selections.hair_photo_url || null,
-          // Existing fields
+          texture: selections.texture,
+          density: selections.density,
+          moisture_behaviour: selections.moisture_behaviour,
           scalp_condition: selections.scalp_condition,
-          hair_density: selections.hair_density,
-          hair_porosity: selections.hair_porosity,
           is_damaged: selections.is_damaged,
-          hair_texture: selections.hair_texture,
-          porosity_level: selections.porosity_level,
           updatedAt: serverTimestamp(),
         };
         try {
@@ -163,7 +159,23 @@ const useOnboardingStore = create(
       syncWithFirebase: async (uid) => {
         if (!uid) return;
         try {
-          // Sync Summary
+          // Sync Routine from Backend Scenario API
+          const routineRes = await fetch(`/api/routine/${uid}`);
+          if (routineRes.ok) {
+            const routineData = await routineRes.json();
+            if (routineData && Object.keys(routineData).length > 0) {
+              set((state) => ({
+                selections: {
+                  ...state.selections,
+                  apiRoutine: routineData,
+                  updatedAt: routineData.updatedAt || new Date().toISOString()
+                }
+              }));
+              console.log("Routine synced from Scenario API");
+            }
+          }
+
+          // Sync Summary (Still from Firestore for now, or could move to Supabase)
           const summarySnap = await getDoc(doc(db, "users", uid, "data", "summary"));
           if (summarySnap.exists()) {
             const summaryData = summarySnap.data();
@@ -176,22 +188,8 @@ const useOnboardingStore = create(
             }));
             console.log("Summary synced from Firestore");
           }
-
-          // Sync Routine
-          const routineSnap = await getDoc(doc(db, "users", uid, "data", "routine"));
-          if (routineSnap.exists()) {
-            const routineData = routineSnap.data();
-            set((state) => ({
-              selections: {
-                ...state.selections,
-                apiRoutine: routineData,
-                updatedAt: routineData.updatedAt
-              }
-            }));
-            console.log("Routine synced from Firestore");
-          }
         } catch (error) {
-          console.error("Error syncing with Firebase:", error);
+          console.error("Error syncing profile:", error);
         }
       },
 
@@ -212,12 +210,18 @@ const useOnboardingStore = create(
         try {
           const user = auth.currentUser;
           const payload = {
-            uid: user?.uid || null,
-            porosity: selections.porosity_level || "Unknown",
+            user_id: user?.uid || null,
+            first_name: selections.first_name || "User",
+            location: selections.location || "Dubai, UAE",
+            texture: selections.texture || "Type 3",
+            density: selections.density || "Medium",
+            moisture_behaviour: selections.moisture_behaviour || "Medium Porosity",
+            humidity_response: selections.humidity_response || "Frizz",
+            hair_goals: selections.hair_goals || [],
+            // Fallback/Legacy fields required by current backend
+            porosity: selections.moisture_behaviour || "Medium Porosity",
             scalp: selections.scalp_condition || "Normal",
             damage: selections.is_damaged || "No",
-            density: selections.hair_density || "Medium",
-            texture: selections.hair_texture || "Wavy",
           };
 
           const response = await fetch("/api/create-routine", {

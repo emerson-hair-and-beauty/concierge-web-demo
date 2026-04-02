@@ -4,7 +4,7 @@ import useOnboardingStore from "../../hooks/useOnboardingStore";
 import { TEXTURE_OPTIONS } from "../../constants/onboardingData";
 
 export default function HairTextureStep() {
-  const value = useOnboardingStore((s) => s.selections.hair_texture);
+  const value = useOnboardingStore((s) => s.selections.texture);
   const options = TEXTURE_OPTIONS;
 
   const description = {
@@ -18,10 +18,10 @@ export default function HairTextureStep() {
       <SingleRadioOnboarding
         options={options}
         description={description}
-        stepKey="hair_texture"
+        stepKey="texture"
         value={value}
         onChange={(value) => {
-          console.log("hair_texture selected:", value);
+          console.log("texture selected:", value);
           console.log(useOnboardingStore.getState().getSelections());
         }}
       />

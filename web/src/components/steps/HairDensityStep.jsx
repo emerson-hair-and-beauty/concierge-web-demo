@@ -4,7 +4,7 @@ import useOnboardingStore from "../../hooks/useOnboardingStore";
 import { DENSITY_OPTIONS } from "../../constants/onboardingData";
 
 export default function HairDensityStep() {
-  const value = useOnboardingStore((s) => s.selections.hair_density);
+  const value = useOnboardingStore((s) => s.selections.density);
   const options = DENSITY_OPTIONS;
 
   const description = {
@@ -18,10 +18,10 @@ export default function HairDensityStep() {
       <SingleRadioOnboarding
         options={options}
         description={description}
-        stepKey="hair_density"
+        stepKey="density"
         value={value}
         onChange={(value) => {
-          console.log("hair_density selected:", value);
+          console.log("density selected:", value);
           console.log(useOnboardingStore.getState().getSelections());
         }}
       />

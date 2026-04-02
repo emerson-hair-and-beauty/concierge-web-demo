@@ -52,16 +52,15 @@ const transformRoutineData = (data) => {
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { uid, ...payload } = body;
+    // The store now sends user_id, first_name, location, texture, density, moisture_behaviour, humidity_response, hair_goals
     
-    const jsonPayload = JSON.stringify(payload);
-    console.log("Proxying request to Orchestrator:", jsonPayload);
+    console.log("Proxying request to Orchestrator:", JSON.stringify(body));
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://concierge-jzf8.onrender.com';
     const response = await fetch(`${apiUrl}/orchestrator/run-orchestrator`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: jsonPayload,
+      body: JSON.stringify(body),
     });
 
     console.log("Orchestrator response status:", response.status, response.statusText);

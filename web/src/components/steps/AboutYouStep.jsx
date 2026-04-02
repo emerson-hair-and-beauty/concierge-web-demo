@@ -57,14 +57,14 @@ export default function AboutYouStep() {
           sx={fieldSx}
         />
 
-        {/* Country */}
+        {/* Location */}
         <TextField
-          label="Country"
+          label="Location"
           variant="outlined"
           select
           fullWidth
-          value={selections.country || ""}
-          onChange={handleField("country")}
+          value={selections.location || ""}
+          onChange={handleField("location")}
           sx={fieldSx}
         >
           {GCC_COUNTRIES.map((c) => (

@@ -13,7 +13,7 @@ export default function PorosityStep() {
 
   const handleSelect = (key, value) => {
     setPorosity("hair_porosity", {
-      ...porosity,
+      ...(porosity || {}),
       [key]: value,
     });
   };

@@ -24,6 +24,8 @@ import HairDensityStep from "@/components/steps/HairDensityStep";
 import PorosityStep from "@/components/steps/PorosityStep";
 import HumidityResponseStep from "@/components/steps/HumidityResponseStep";
 import HairGoalsStep from "@/components/steps/HairGoalsStep";
+import ScalpConditionStep from "@/components/steps/ScalpConditionStep";
+import TreatmentHistoryStep from "@/components/steps/TreatmentHistoryStep";
 import ProfileCreatingStep from "@/components/steps/ProfileCreatingStep";
 import GoogleAuthStep from "@/components/steps/GoogleAuthStep";
 import PhotoUploadStep from "@/components/steps/PhotoUploadStep";
@@ -181,7 +183,7 @@ const QUESTION_STEPS = [
     title: "About You",
     stepLabel: 1,
     component: <AboutYouStep />,
-    validate: (sel) => !!(sel.first_name?.trim() && sel.country && sel.gender && sel.hair_length),
+    validate: (sel) => !!(sel.first_name?.trim() && sel.location && sel.gender && sel.hair_length),
   },
   {
     key: "photo_upload",
@@ -195,14 +197,14 @@ const QUESTION_STEPS = [
     title: "Curl Pattern",
     stepLabel: 3,
     component: <HairTextureStep />,
-    validate: (sel) => !!sel.hair_texture,
+    validate: (sel) => !!sel.texture,
   },
   {
     key: "hair_density",
     title: "Hair Density",
     stepLabel: 4,
     component: <HairDensityStep />,
-    validate: (sel) => !!sel.hair_density,
+    validate: (sel) => !!sel.density,
   },
   {
     key: "hair_porosity",
@@ -223,17 +225,31 @@ const QUESTION_STEPS = [
     validate: (sel) => !!sel.humidity_response,
   },
   {
+    key: "scalp_condition",
+    title: "Scalp Health",
+    stepLabel: 7,
+    component: <ScalpConditionStep />,
+    validate: (sel) => !!sel.scalp_condition,
+  },
+  {
+    key: "treatment_history",
+    title: "Treatment History",
+    stepLabel: 8,
+    component: <TreatmentHistoryStep />,
+    validate: (sel) => !!sel.is_damaged,
+  },
+  {
     key: "hair_goals",
     title: "Curl Goals",
-    stepLabel: 7,
+    stepLabel: 9,
     component: <HairGoalsStep />,
     validate: (sel) => Array.isArray(sel.hair_goals) && sel.hair_goals.length > 0,
   },
 ];
 
-const TOTAL_QUESTION_STEPS = 7;
-const GOOGLE_STEP_INDEX = 7;
-const LOADING_STEP_INDEX = 8;
+const TOTAL_QUESTION_STEPS = 9;
+const GOOGLE_STEP_INDEX = 9;
+const LOADING_STEP_INDEX = 10;
 
 export default function Onboarding() {
   const [screen, setScreen] = useState(-1);
@@ -275,12 +291,12 @@ export default function Onboarding() {
         const klaviyoData = {
           email: emailToSync,
           first_name: selections.first_name,
-          country: selections.country,
+          location: selections.location,
           gender: selections.gender,
           hair_length: selections.hair_length,
-          hair_texture: selections.hair_texture,
-          hair_density: selections.hair_density,
-          porosity_level: calculatePorosityLevel(selections.hair_porosity),
+          texture: selections.texture,
+          density: selections.density,
+          moisture_behaviour: calculatePorosityLevel(selections.hair_porosity),
           humidity_response: selections.humidity_response,
           hair_goals: selections.hair_goals,
           hair_photo_url: selections.hair_photo_url || null,
@@ -302,9 +318,9 @@ export default function Onboarding() {
   };
 
   const handleLoadingComplete = useCallback(() => {
-    if (selections.hair_porosity && !selections.porosity_level) {
+    if (selections.hair_porosity && !selections.moisture_behaviour) {
       const level = calculatePorosityLevel(selections.hair_porosity);
-      setSelection("porosity_level", level);
+      setSelection("moisture_behaviour", level);
     }
     if (user) {
       saveSummary(user.uid);

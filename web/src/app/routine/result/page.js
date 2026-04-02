@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import CustomRoutine from "@/components/custom-routine/CustomRoutine";
 import ExperienceChat from "@/components/routine/ExperienceChat";
+import TerminalUI from "@/components/onboarding/TerminalUI";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { Container, Box, Typography, LinearProgress, Paper, Fade } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
@@ -110,52 +111,43 @@ export default function RoutineResult() {
       }}>
         <Fade in={true} timeout={1000}>
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <ThinkingBox elevation={0} sx={{ background: 'rgba(255, 255, 255, 0.4)' }}>
-              <Typography variant="h5" sx={{ 
-                fontWeight: 600, 
-                mb: 1, 
-                background: 'linear-gradient(45deg, #1A342B, #2D5A4A)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
-                Personalizing Your Routine
-              </Typography>
-              
-              <Box sx={{ minHeight: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Fade in={!!thinkingText} key={thinkingText} timeout={800}>
-                  <Typography variant="body1" sx={{ 
-                    color: '#1A342B', 
-                    fontStyle: 'italic', 
-                    lineHeight: 1.6,
-                    maxWidth: '550px',
-                    fontWeight: 500,
-                    textAlign: 'center'
-                  }}>
-                    {thinkingText || "Analyzing your hair profile to find the perfect match..."}
-                  </Typography>
-                </Fade>
-              </Box>
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+                <Typography variant="h4" sx={{ 
+                    fontWeight: 800, 
+                    mb: 1, 
+                    color: '#2D5A4A',
+                    letterSpacing: '-0.02em',
+                }}>
+                    Building your routine...
+                </Typography>
+                <Typography variant="body1" sx={{ color: '#8BA198', maxWidth: '600px', mx: 'auto' }}>
+                    Hold tight. Our AI is analyzing your curls, checking the local weather in {selections.location}, and searching for the perfect products for you.
+                </Typography>
+            </Box>
 
-              <Box sx={{ width: '100%', mt: 2 }}>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={progress} 
-                  sx={{ 
-                    height: 8, 
-                    borderRadius: 4,
+            <TerminalUI 
+                logs={selections.debugLogs || []} 
+                currentThinking={thinkingText} 
+            />
+
+            <Box sx={{ width: '100%', maxWidth: '700px', mt: 2 }}>
+              <LinearProgress 
+                variant="determinate" 
+                value={progress} 
+                sx={{ 
+                    height: 6, 
+                    borderRadius: 3,
                     backgroundColor: 'rgba(45, 90, 74, 0.1)',
                     '& .MuiLinearProgress-bar': {
-                      borderRadius: 4,
-                      backgroundColor: '#2D5A4A',
-                      backgroundImage: 'linear-gradient(90deg, #2D5A4A 0%, #4A8B71 100%)'
+                        borderRadius: 3,
+                        backgroundColor: '#2D5A4A',
                     }
-                  }} 
-                />
-                <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#8BA198', letterSpacing: 1 }}>
-                  ESTIMATED TIME: {Math.max(0, Math.ceil(30 - (progress * 30 / 100)))}S
-                </Typography>
-              </Box>
-            </ThinkingBox>
+                }} 
+              />
+              <Typography variant="caption" sx={{ mt: 1.5, display: 'block', color: '#8BA198', letterSpacing: 2, textAlign: 'center', fontWeight: 600 }}>
+                  ESTIMATED TIME REMAINING: {Math.max(0, Math.ceil(30 - (progress * 30 / 100)))}S
+              </Typography>
+            </Box>
           </Box>
         </Fade>
       </Container>

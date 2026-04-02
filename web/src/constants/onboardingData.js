@@ -37,20 +37,20 @@ export const GENDER_OPTIONS = [
 
 export const HUMIDITY_RESPONSE_OPTIONS = [
   {
-    value: "frizzy",
-    label: "Expand and become frizzy",
+    value: "Frizz",
+    label: "Frizz / Expansion",
     description: "My curls puff up and lose shape in humidity.",
     icon: "humidity_frizzy",
   },
   {
-    value: "lose_definition",
-    label: "Lose definition",
+    value: "Limp",
+    label: "Limp / Weighted",
     description: "My curls fall flat or separate when it's humid.",
     icon: "humidity_limp",
   },
   {
-    value: "stable",
-    label: "Stay mostly the same",
+    value: "No Effect",
+    label: "No Effect",
     description: "Humidity doesn't affect my curls much.",
     icon: "humidity_stable",
   },

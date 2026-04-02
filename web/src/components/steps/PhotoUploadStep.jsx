@@ -12,6 +12,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { uploadImageAction } from "@/app/actions/imageUpload";
+import { saveUserMetadata } from "@/app/actions/userMetadata";
+import { auth } from "@/config/firebase";
 import { typographyStyles } from "../../styles/typographyStyles";
 
 const DARK_GREEN = "#2D5A4A";
@@ -39,6 +41,18 @@ const PhotoUploadStep = () => {
         
         if (result.success) {
           setSelection("hair_photo_url", result.url);
+          
+          // Sync with Supabase Metadata
+          const user = auth.currentUser;
+          if (user) {
+            const { selections } = useOnboardingStore.getState();
+            await saveUserMetadata({
+              user_id: user.uid,
+              first_name: selections.first_name,
+              location: selections.location,
+              hair_photo_url: result.url,
+            });
+          }
         } else {
           setError(result.error || "Upload failed");
         }
