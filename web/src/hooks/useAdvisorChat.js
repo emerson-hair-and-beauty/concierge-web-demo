@@ -78,6 +78,8 @@ export const useAdvisorChat = (userId) => {
 
           if (event.type === 'clarification') {
             setPendingClarification(event.content);
+          } else if (event.type === 'error') {
+            setMessages((prev) => [...prev, { role: 'assistant', content: event.content }]);
           } else if (event.type === 'content' && event.content) {
             setMessages((prev) => {
               if (assistantIndex === null) {
