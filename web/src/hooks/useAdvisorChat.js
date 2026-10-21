@@ -34,9 +34,10 @@ export const useAdvisorChat = (userId) => {
     setPendingClarification(null);
     setIsLoading(true);
 
-    // The assistant's reply streams in as a sequence of `content` chunks —
-    // append them to one growing message rather than one bubble per chunk.
-    let assistantIndex = null;
+    // Content chunks append to one reply, found by id. The updater must stay
+    // pure: React Strict Mode runs it twice.
+    const replyId = generateUUID();
+    let turnProducts = [];
 
     try {
       const response = await fetch('/api/advisor/chat', {
@@ -78,25 +79,31 @@ export const useAdvisorChat = (userId) => {
 
           if (event.type === 'clarification') {
             setPendingClarification(event.content);
+          } else if (event.type === 'products') {
+            turnProducts = event.content || [];
           } else if (event.type === 'error') {
             setMessages((prev) => [...prev, { role: 'assistant', content: event.content }]);
           } else if (event.type === 'content' && event.content) {
             setMessages((prev) => {
-              if (assistantIndex === null) {
-                assistantIndex = prev.length;
-                return [...prev, { role: 'assistant', content: event.content }];
+              const i = prev.findIndex((m) => m.id === replyId);
+              if (i === -1) {
+                return [...prev, { id: replyId, role: 'assistant', content: event.content }];
               }
               const next = [...prev];
-              next[assistantIndex] = {
-                ...next[assistantIndex],
-                content: next[assistantIndex].content + event.content,
-              };
+              next[i] = { ...next[i], content: next[i].content + event.content };
               return next;
             });
           }
           // `status` / `strategy` / `delivery_plan` events are diagnostic only
           // for now — nothing in the UI reads them yet.
         }
+      }
+
+      // Products arrive before the reply text, so attach them once it exists.
+      if (turnProducts.length) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === replyId ? { ...m, products: turnProducts } : m))
+        );
       }
     } catch (error) {
       console.error('Advisor chat failed:', error);

@@ -91,6 +91,26 @@ const InputArea = styled(Box)({
   gap: '8px',
 });
 
+const ProductRow = styled(Box)({
+  display: 'flex',
+  gap: '10px',
+  overflowX: 'auto',
+  paddingBottom: '4px',
+  alignSelf: 'stretch',
+  flexShrink: 0,
+});
+
+const ProductCard = styled(Paper)({
+  flex: '0 0 180px',
+  padding: '12px 14px',
+  borderRadius: '14px',
+  border: '1px solid rgba(74, 61, 45, 0.15)',
+  background: 'white',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '4px',
+});
+
 const ClarificationPanel = styled(Box)({
   padding: '24px',
   display: 'flex',
@@ -255,9 +275,32 @@ export default function AdvisorChat({ isOpenExternal, onCloseExternal, onOpenExt
                   </MessageBubble>
                 )}
                 {messages.map((msg, i) => (
-                  <MessageBubble key={i} isUser={msg.role === 'user'}>
-                    {msg.content}
-                  </MessageBubble>
+                  <React.Fragment key={msg.id || i}>
+                    <MessageBubble isUser={msg.role === 'user'}>
+                      {msg.content}
+                    </MessageBubble>
+                    {msg.products?.length > 0 && (
+                      <ProductRow>
+                        {msg.products.map((p) => (
+                          <ProductCard key={p.id} elevation={0}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#2B2318', lineHeight: 1.3 }}>
+                              {p.name}
+                            </Typography>
+                            {p.brand && (
+                              <Typography variant="caption" sx={{ color: '#8B7355' }}>
+                                {p.brand}
+                              </Typography>
+                            )}
+                            {(p.category || p.primary_focus) && (
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {[p.category, p.primary_focus].filter(Boolean).join(' · ')}
+                              </Typography>
+                            )}
+                          </ProductCard>
+                        ))}
+                      </ProductRow>
+                    )}
+                  </React.Fragment>
                 ))}
                 {isLoading && (
                   <Box sx={{ alignSelf: 'flex-start', ml: 1 }}>
@@ -268,6 +311,7 @@ export default function AdvisorChat({ isOpenExternal, onCloseExternal, onOpenExt
 
               <InputArea>
                 <TextField
+                  id="advisor-chat-input"
                   fullWidth
                   size="small"
                   placeholder="Tell me about your hair..."
