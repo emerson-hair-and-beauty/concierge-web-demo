@@ -306,38 +306,37 @@ const useOnboardingStore = create(
                   if (data.type === 'content' && data.content) {
                     contentBuffer += data.content;
                     
-                    // Try to extract and parse JSON if we haven't yet or if it looks updated
-                    if (!baseRoutineParsed && contentBuffer.includes('```json')) {
-                      const jsonMatch = contentBuffer.match(/```json\n([\s\S]*?)\n```/);
-                      if (jsonMatch) {
-                        try {
-                          const parsed = JSON.parse(jsonMatch[1]);
-                          const routineArray = parsed.routine || parsed.result || parsed;
-                          if (Array.isArray(routineArray)) {
-                            const transformed = {
-                              profile: "Your Personalized Routine",
-                              steps: routineArray.map(step => ({
-                                title: step.step,
-                                icon: step.step === "Cleanse" ? "💧" : step.step === "Condition" ? "🚿" : step.step === "Treat" ? "✨" : step.step.includes("Style") ? "🎨" : "🧴",
-                                description: step.action,
-                                detailedInstructions: step.notes,
-                                keyIngredients: step.ingredients || [],
-                                recommendedProducts: []
-                              }))
-                            };
-                            
-                            set((state) => ({
-                              selections: {
-                                ...state.selections,
-                                apiRoutine: transformed,
-                                thinkingText: "Routine generated. Now finding products..."
-                              }
-                            }));
-                            baseRoutineParsed = true;
-                          }
-                        } catch (e) {
-                          console.warn("Partial JSON parse failed (expected):", e.message);
+                    // Same cleanup the backend orchestrator applies: some models
+                    // fence the JSON in ```json, others (OpenAI) return it bare.
+                    const cleaned = contentBuffer.replace(/```json|```/g, '').trim();
+                    if (!baseRoutineParsed && cleaned.endsWith('}')) {
+                      try {
+                        const parsed = JSON.parse(cleaned);
+                        const routineArray = parsed.routine || parsed.result || parsed;
+                        if (Array.isArray(routineArray)) {
+                          const transformed = {
+                            profile: "Your Personalized Routine",
+                            steps: routineArray.map(step => ({
+                              title: step.step,
+                              icon: step.step === "Cleanse" ? "💧" : step.step === "Condition" ? "🚿" : step.step === "Treat" ? "✨" : step.step.includes("Style") ? "🎨" : "🧴",
+                              description: step.action,
+                              detailedInstructions: step.notes,
+                              keyIngredients: step.ingredients || [],
+                              recommendedProducts: []
+                            }))
+                          };
+
+                          set((state) => ({
+                            selections: {
+                              ...state.selections,
+                              apiRoutine: transformed,
+                              thinkingText: "Routine generated. Now finding products..."
+                            }
+                          }));
+                          baseRoutineParsed = true;
                         }
+                      } catch {
+                        // Still streaming: the text is not complete JSON yet.
                       }
                     }
                   }
