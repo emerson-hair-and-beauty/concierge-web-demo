@@ -1,21 +1,14 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { Box, CircularProgress } from "@mui/material";
 
 export default function RoutineRoot() {
   const router = useRouter();
-  const selections = useOnboardingStore((s) => s.selections) || {};
-  const { apiRoutine } = selections;
 
   useEffect(() => {
-    if (apiRoutine) {
-      router.replace("/routine/result");
-    } else {
-      router.replace("/routine/summary");
-    }
-  }, [apiRoutine, router]);
+    router.replace("/routine/choose");
+  }, [router]);
 
   return (
     <Box sx={{ 

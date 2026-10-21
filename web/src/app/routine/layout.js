@@ -1,16 +1,21 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Box } from "@mui/material";
 import UserNav from "@/components/navigation/UserNav";
 import TopNav from "@/components/navigation/TopNav";
 import ExperienceChat from "@/components/routine/ExperienceChat";
+import AdvisorChat from "@/components/routine/AdvisorChat";
 import { useEffect } from "react";
 import { useUserData } from "@/hooks/useUserData";
 import { updateUserLocation } from "@/utils/telemetry";
+import useChatModeStore from "@/hooks/useChatModeStore";
 
 export default function RoutineLayout({ children }) {
-  const [isChatOpen, setIsChatOpen] = useState(false);
+  const openMode = useChatModeStore((s) => s.openMode);
+  const openEmpath = useChatModeStore((s) => s.openEmpath);
+  const openAdvisor = useChatModeStore((s) => s.openAdvisor);
+  const closeChat = useChatModeStore((s) => s.closeChat);
   const { user } = useUserData();
 
   useEffect(() => {
@@ -68,10 +73,17 @@ export default function RoutineLayout({ children }) {
       </Box>
 
       {/* Global Experience Chat managed by Layout and Nav */}
-      <ExperienceChat 
-        isOpenExternal={isChatOpen} 
-        onCloseExternal={() => setIsChatOpen(false)} 
-        onOpenExternal={() => setIsChatOpen(true)}
+      <ExperienceChat
+        isOpenExternal={openMode === "empath"}
+        onCloseExternal={closeChat}
+        onOpenExternal={openEmpath}
+      />
+
+      {/* Hair advisor chat (decision-state pipeline) — separate surface, opposite corner */}
+      <AdvisorChat
+        isOpenExternal={openMode === "advisor"}
+        onCloseExternal={closeChat}
+        onOpenExternal={openAdvisor}
       />
     </Box>
   );

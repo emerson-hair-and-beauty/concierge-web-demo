@@ -26,6 +26,8 @@ import HumidityResponseStep from "@/components/steps/HumidityResponseStep";
 import HairGoalsStep from "@/components/steps/HairGoalsStep";
 import ScalpConditionStep from "@/components/steps/ScalpConditionStep";
 import TreatmentHistoryStep from "@/components/steps/TreatmentHistoryStep";
+import AcUsageStep from "@/components/steps/AcUsageStep";
+import WaterFiltrationStep from "@/components/steps/WaterFiltrationStep";
 import ProfileCreatingStep from "@/components/steps/ProfileCreatingStep";
 import GoogleAuthStep from "@/components/steps/GoogleAuthStep";
 import PhotoUploadStep from "@/components/steps/PhotoUploadStep";
@@ -239,17 +241,31 @@ const QUESTION_STEPS = [
     validate: (sel) => !!sel.is_damaged,
   },
   {
+    key: "ac_usage",
+    title: "Climate Exposure",
+    stepLabel: 9,
+    component: <AcUsageStep />,
+    validate: (sel) => !!sel.in_ac,
+  },
+  {
+    key: "water_filtration",
+    title: "Water Quality",
+    stepLabel: 10,
+    component: <WaterFiltrationStep />,
+    validate: (sel) => !!sel.has_filtration,
+  },
+  {
     key: "hair_goals",
     title: "Curl Goals",
-    stepLabel: 9,
+    stepLabel: 11,
     component: <HairGoalsStep />,
     validate: (sel) => Array.isArray(sel.hair_goals) && sel.hair_goals.length > 0,
   },
 ];
 
-const TOTAL_QUESTION_STEPS = 9;
-const GOOGLE_STEP_INDEX = 9;
-const LOADING_STEP_INDEX = 10;
+const TOTAL_QUESTION_STEPS = 11;
+const GOOGLE_STEP_INDEX = 11;
+const LOADING_STEP_INDEX = 12;
 
 export default function Onboarding() {
   const [screen, setScreen] = useState(-1);

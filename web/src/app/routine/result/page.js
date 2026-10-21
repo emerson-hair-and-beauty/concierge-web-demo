@@ -50,14 +50,6 @@ export default function RoutineResult() {
   }, [isGeneratingRoutine, thinkingText, apiRoutine, generationError]);
 
   useEffect(() => {
-    // If we're here and not generating, don't have a routine, AND no error, start it
-    if (!apiRoutine && !isGeneratingRoutine && !generationError) {
-      console.log("Starting routine generation...");
-      generateRoutine();
-    }
-  }, [apiRoutine, isGeneratingRoutine, generateRoutine, generationError]);
-
-  useEffect(() => {
     let timer;
     if (isGeneratingRoutine) {
       timer = setInterval(() => {
@@ -103,13 +95,50 @@ export default function RoutineResult() {
     );
   }
 
+  if (!apiRoutine && !generationError && !isGeneratingRoutine) {
+    return (
+      <Container sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        minHeight: '85vh',
+        textAlign: 'center',
+      }}>
+        <Typography variant="h5" sx={{ fontWeight: 800, mb: 1, color: '#2D5A4A' }}>
+          No routine yet
+        </Typography>
+        <Typography variant="body1" sx={{ color: '#8BA198', mb: 4, maxWidth: '500px' }}>
+          Generate a personalized routine from your saved hair profile.
+        </Typography>
+        <Box
+          component="button"
+          onClick={() => generateRoutine()}
+          sx={{
+            background: '#2D5A4A',
+            color: 'white',
+            border: 'none',
+            padding: '14px 28px',
+            borderRadius: '14px',
+            cursor: 'pointer',
+            fontWeight: 700,
+            fontSize: '1rem',
+            '&:hover': { background: '#1A342B' }
+          }}
+        >
+          Generate My Routine
+        </Box>
+      </Container>
+    );
+  }
+
   if (!apiRoutine && !generationError) {
     return (
-      <Container sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
+      <Container sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
         minHeight: '85vh',
         background: 'radial-gradient(circle at top right, rgba(45, 90, 74, 0.05), transparent), radial-gradient(circle at bottom left, rgba(45, 90, 74, 0.05), transparent)'
       }}>
@@ -200,8 +229,7 @@ export default function RoutineResult() {
               startIcon={<RefreshIcon />}
               onClick={() => {
                 clearRoutine();
-                // Note: The page's useEffect will automatically trigger generateRoutine() 
-                // because apiRoutine becomes null and isGeneratingRoutine is false.
+                generateRoutine();
               }}
               disabled={isGeneratingRoutine}
               sx={{

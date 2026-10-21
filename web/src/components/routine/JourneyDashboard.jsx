@@ -37,6 +37,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { typographyStyles } from "@/styles/typographyStyles";
 import { useRouter, usePathname } from "next/navigation";
 import { logWashDay } from "@/utils/telemetry";
+import RecommendationsSection from "./RecommendationsSection";
 
 const DARK_GREEN = "#2D5A4A";
 const MEDIUM_GREEN = "#426A5B";
@@ -220,6 +221,8 @@ export default function JourneyDashboard() {
   const [activeVitalTab, setActiveVitalTab] = useState(0);
   const [selectedPointValue, setSelectedPointValue] = useState(null);
   const [alertIndex, setAlertIndex] = useState(0);
+  const [weather, setWeather] = useState(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
 
   const activeAlert = MOCK_ALERTS[alertIndex];
 
@@ -234,10 +237,28 @@ export default function JourneyDashboard() {
 
   const currentVital = VITALS_CONFIG[activeVitalTab];
 
+  // Fetch weather data
+  useEffect(() => {
+    const fetchId = user?.uid || 'test_user';
+    if (fetchId) {
+      setIsLoadingWeather(true);
+      fetch(`/api/weather?userId=${fetchId}`)
+        .then(res => res.json())
+        .then(data => {
+          setWeather(data);
+        })
+        .catch(err => {
+          console.error("Weather fetch error:", err);
+          setWeather(null);
+        })
+        .finally(() => setIsLoadingWeather(false));
+    }
+  }, [user?.uid]);
+
   useEffect(() => {
     // Determine which user ID to use for fetching
-    const fetchId = user?.uid || 'test_user_vitals'; 
-    
+    const fetchId = user?.uid || 'test_user_vitals';
+
     if (fetchId) {
       setIsLoadingHistory(true);
       fetch(`/api/diagnostic/history?userId=${fetchId}`)
@@ -466,6 +487,13 @@ export default function JourneyDashboard() {
             {/* JOURNAL VIEW (Existing Layout) */}
             {!isInsightsPage && (
               <>
+                {/* 0. RECOMMENDATIONS */}
+                <Grid item size={{ xs: 12 }}>
+                  <Box sx={{ px: 1 }}>
+                    <RecommendationsSection userId={user?.uid} />
+                  </Box>
+                </Grid>
+
                 {/* 1. ROUTINE SUMMARY (Compact List) */}
             <Grid item size={{ xs: 12, md: 7 }}>
               <BentoCard 
@@ -589,10 +617,12 @@ export default function JourneyDashboard() {
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 0.5 }}>
                     <CloudIcon sx={{ fontSize: 14 }} />
-                    <Typography variant="caption" sx={{ fontWeight: 700 }}>72°F · High Humidity</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                      {isLoadingWeather ? "Loading..." : (weather ? `${Math.round(weather.temp)}°F · ${weather.humidity}% humidity` : "72°F · High Humidity")}
+                    </Typography>
                   </Box>
                   <Typography variant="caption" sx={{ fontWeight: 400, lineHeight: 1.4, display: 'block', opacity: 0.8, fontSize: '0.65rem' }}>
-                    {weatherAdvice['High']}
+                    {weather ? weatherAdvice[weather.humidity_level] || weatherAdvice['High'] : weatherAdvice['High']}
                   </Typography>
                 </Box>
               </BentoCard>

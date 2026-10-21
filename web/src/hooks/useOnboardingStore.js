@@ -82,6 +82,11 @@ const initialSelections = {
   // Legacy / Internal fields
   scalp_condition: null,
   is_damaged: null,
+
+  // Environmental / lifestyle factors
+  in_ac: null,           // "Yes, most of the day" or "Not really"
+  has_filtration: null,  // "Yes, I have filtration" or "No filtration"
+
   apiRoutine: null,
   isGeneratingRoutine: false,
   thinkingText: "",
@@ -143,6 +148,8 @@ const useOnboardingStore = create(
           moisture_behaviour: selections.moisture_behaviour,
           scalp_condition: selections.scalp_condition,
           is_damaged: selections.is_damaged,
+          in_ac: selections.in_ac,
+          has_filtration: selections.has_filtration,
           updatedAt: serverTimestamp(),
         };
         try {

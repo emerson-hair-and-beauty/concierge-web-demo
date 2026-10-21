@@ -141,6 +141,36 @@ export const TEXTURE_OPTIONS = [
   },
 ];
 
+export const AC_USAGE_OPTIONS = [
+  {
+    value: "yes",
+    label: "Yes, most of the day",
+    description: "I spend the majority of my day indoors with air conditioning running.",
+    icon: "check_solid",
+  },
+  {
+    value: "no",
+    label: "Not really",
+    description: "I'm rarely in air-conditioned spaces for long stretches.",
+    icon: "check_damaged",
+  },
+];
+
+export const WATER_FILTRATION_OPTIONS = [
+  {
+    value: "yes",
+    label: "Yes, I have filtration",
+    description: "I have a water filter at home — shower filter, whole-house system, or similar.",
+    icon: "check_solid",
+  },
+  {
+    value: "no",
+    label: "No filtration",
+    description: "I use unfiltered tap water for washing.",
+    icon: "check_damaged",
+  },
+];
+
 export const PROCESSING_OPTIONS = [
   {
     value: "yes",

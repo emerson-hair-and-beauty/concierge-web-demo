@@ -125,8 +125,8 @@ export default function ProfilePage() {
   const selections = useOnboardingStore((s) => s.selections) || {};
 
   const firstName = selections.first_name || "Your";
-  const texture = selections.hair_texture;
-  const density = selections.hair_density || null;
+  const texture = selections.texture;
+  const density = selections.density || null;
   const humidity = getHumidityLabel(selections.humidity_response);
   const goals = getGoalsLabel(selections.hair_goals);
   const moisture = getMoistureLabel(selections.hair_porosity);
