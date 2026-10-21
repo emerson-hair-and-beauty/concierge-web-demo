@@ -3,10 +3,24 @@ import { persist } from "zustand/middleware";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "@/config/firebase";
 
+// Catalog products carry structured metadata; prefer it over parsing the
+// free-text description, which would otherwise become the whole "name".
+const parseProduct = (p) => {
+  const m = p.metadata || {};
+  if (m.name) {
+    return {
+      name: m.name,
+      brand: m.brand || "Recommended",
+      tags: [m.category, m.primary_focus].filter((t) => t && t !== "None"),
+    };
+  }
+  return parseProductContent(p.content || "");
+};
+
 // Helper to parse the unstructured content string
 const parseProductContent = (content) => {
-  // Extract name (everything before "Ingredients:" or just the start)
-  const nameMatch = content.split(/Ingredients:|How to use:/)[0].trim();
+  // Extract name (everything before the first field label)
+  const nameMatch = content.split(/Ingredients:|How to use:|Category:/)[0].trim();
   // Clean up name if it ends with a dot
   const name = nameMatch.endsWith(".") ? nameMatch.slice(0, -1) : nameMatch;
 
@@ -51,9 +65,7 @@ const transformRoutineData = (data) => {
       description: step.action,
       detailedInstructions: step.notes,
       keyIngredients: step.ingredients,
-      recommendedProducts: step.products.map((p) =>
-        parseProductContent(p.content)
-      ),
+      recommendedProducts: step.products.map(parseProduct),
     })),
   };
 };
@@ -352,7 +364,7 @@ const useOnboardingStore = create(
                         if (step.title === prodData.step) {
                           return {
                             ...step,
-                            recommendedProducts: prodData.products.map(p => parseProductContent(p.content))
+                            recommendedProducts: prodData.products.map(parseProduct)
                           };
                         }
                         return step;

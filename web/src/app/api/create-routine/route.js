@@ -4,9 +4,22 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export const runtime = 'nodejs';
 
+// Same as useOnboardingStore.js: prefer structured catalog metadata.
+const parseProduct = (p) => {
+  const m = p.metadata || {};
+  if (m.name) {
+    return {
+      name: m.name,
+      brand: m.brand || "Recommended",
+      tags: [m.category, m.primary_focus].filter((t) => t && t !== "None"),
+    };
+  }
+  return parseProductContent(p.content || "");
+};
+
 // Helper to parse the unstructured content string (copied from store for consistency)
 const parseProductContent = (content) => {
-  const nameMatch = content.split(/Ingredients:|How to use:/)[0].trim();
+  const nameMatch = content.split(/Ingredients:|How to use:|Category:/)[0].trim();
   const name = nameMatch.endsWith(".") ? nameMatch.slice(0, -1) : nameMatch;
   const brand = "Recommended";
   const tagsMatch = content.match(/Tags:\s*(.*?)(?=\.|Hair finish:|$)/);
@@ -42,9 +55,7 @@ const transformRoutineData = (data) => {
       description: step.action,
       detailedInstructions: step.notes,
       keyIngredients: step.ingredients,
-      recommendedProducts: step.products.map((p) =>
-        parseProductContent(p.content)
-      ),
+      recommendedProducts: step.products.map(parseProduct),
     })),
   };
 };
