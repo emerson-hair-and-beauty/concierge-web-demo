@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import InstallPrompt from "@/components/pwa/InstallPrompt";
+import { ADVISOR_ONLY } from "@/config/features";
 
 export default function ClientLayout({ children }) {
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function ClientLayout({ children }) {
 
   return (
     <>
-      <InstallPrompt />
+      {!ADVISOR_ONLY && <InstallPrompt />}
       {children}
     </>
   );

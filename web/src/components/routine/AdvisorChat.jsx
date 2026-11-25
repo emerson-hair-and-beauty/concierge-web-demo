@@ -20,6 +20,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { styled } from '@mui/material/styles';
 import { useAdvisorChat } from '@/hooks/useAdvisorChat';
 import { useUserData } from '@/hooks/useUserData';
@@ -49,6 +50,18 @@ const ChatProvider = styled(Paper)(({ theme }) => ({
     borderRadius: '0',
   }
 }));
+
+// Full-page variant: the chat is the whole screen, not a floating panel.
+const PageShell = styled(Box)({
+  height: '100dvh',
+  width: '100%',
+  maxWidth: '860px',
+  margin: '0 auto',
+  display: 'flex',
+  flexDirection: 'column',
+  background: 'rgba(255, 255, 255, 0.85)',
+  overflow: 'hidden',
+});
 
 const ChatHeader = styled(Box)(({ theme }) => ({
   padding: '16px 20px',
@@ -120,7 +133,16 @@ const ClarificationPanel = styled(Box)({
   overflowY: 'auto',
 });
 
-export default function AdvisorChat({ isOpenExternal, onCloseExternal, onOpenExternal }) {
+// variant="floating" (default): a button in the corner opens a panel.
+// variant="page": the chat fills the page. onSignOut adds a sign-out button.
+export default function AdvisorChat({
+  isOpenExternal,
+  onCloseExternal,
+  onOpenExternal,
+  variant = 'floating',
+  onSignOut,
+}) {
+  const isPage = variant === 'page';
   const [internalOpen, setInternalOpen] = useState(false);
   const [inputText, setInputText] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
@@ -162,6 +184,165 @@ export default function AdvisorChat({ isOpenExternal, onCloseExternal, onOpenExt
     setSelectedOption('');
   };
 
+  const chatContent = (
+    <>
+      <ChatHeader>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          {isPage ? (
+            onSignOut && (
+              <IconButton size="small" onClick={onSignOut} sx={{ color: 'white' }} title="Sign out">
+                <LogoutIcon fontSize="small" />
+              </IconButton>
+            )
+          ) : (
+            <IconButton size="small" onClick={() => setIsOpen(false)} sx={{ color: 'white' }}>
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          )}
+          {messages.length > 0 && (
+            <IconButton
+              size="small"
+              onClick={resetChat}
+              sx={{ color: 'white', opacity: 0.8, '&:hover': { opacity: 1 } }}
+              title="Clear conversation"
+            >
+              <DeleteSweepIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, textAlign: 'right' }}>
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+              Concierge by Emerson
+            </Typography>
+            <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>
+              Ask Concierge
+            </Typography>
+          </Box>
+          <Avatar sx={{ bgcolor: '#8B7355', width: 32, height: 32 }}>
+            <SmartToyIcon fontSize="small" />
+          </Avatar>
+        </Box>
+      </ChatHeader>
+
+      {pendingClarification ? (
+        <ClarificationPanel>
+          <Typography variant="body1" sx={{ fontWeight: 600, color: '#2B2318' }}>
+            {pendingClarification.question}
+          </Typography>
+          <RadioGroup
+            key={pendingClarification.question}
+            value={selectedOption}
+            onChange={(e) => setSelectedOption(e.target.value)}
+          >
+            {(pendingClarification.options || []).map((opt, i) => (
+              <FormControlLabel
+                key={i}
+                value={opt.label}
+                control={<Radio sx={{ color: '#4A3D2D', '&.Mui-checked': { color: '#4A3D2D' } }} />}
+                label={opt.label}
+              />
+            ))}
+          </RadioGroup>
+          <Button
+            variant="contained"
+            onClick={handleSubmitClarification}
+            disabled={!selectedOption || isLoading}
+            fullWidth
+            sx={{
+              mt: 'auto',
+              bgcolor: '#4A3D2D',
+              borderRadius: '12px',
+              py: 1.5,
+              '&:hover': { bgcolor: '#2B2318' }
+            }}
+          >
+            That sounds right
+          </Button>
+        </ClarificationPanel>
+      ) : (
+        <>
+          <MessageList ref={scrollRef}>
+            {messages.length === 0 && (
+              <MessageBubble isUser={false}>
+                Hi! Tell me what&apos;s going on with your hair and I&apos;ll help you work through it.
+              </MessageBubble>
+            )}
+            {messages.map((msg, i) => (
+              <React.Fragment key={msg.id || i}>
+                <MessageBubble isUser={msg.role === 'user'}>
+                  {msg.content}
+                </MessageBubble>
+                {msg.products?.length > 0 && (
+                  <ProductRow>
+                    {msg.products.map((p) => (
+                      <ProductCard key={p.id} elevation={0}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#2B2318', lineHeight: 1.3 }}>
+                          {p.name}
+                        </Typography>
+                        {p.brand && (
+                          <Typography variant="caption" sx={{ color: '#8B7355' }}>
+                            {p.brand}
+                          </Typography>
+                        )}
+                        {(p.category || p.primary_focus) && (
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {[p.category, p.primary_focus].filter(Boolean).join(' · ')}
+                          </Typography>
+                        )}
+                      </ProductCard>
+                    ))}
+                  </ProductRow>
+                )}
+              </React.Fragment>
+            ))}
+            {isLoading && (
+              <Box sx={{ alignSelf: 'flex-start', ml: 1 }}>
+                <CircularProgress size={16} sx={{ color: '#4A3D2D' }} />
+              </Box>
+            )}
+          </MessageList>
+
+          <InputArea>
+            <TextField
+              id="advisor-chat-input"
+              fullWidth
+              size="small"
+              placeholder="Tell me about your hair..."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              variant="outlined"
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  background: 'white'
+                }
+              }}
+            />
+            <IconButton
+              onClick={handleSend}
+              disabled={!inputText.trim() || isLoading}
+              sx={{
+                bgcolor: '#4A3D2D',
+                color: 'white',
+                '&:hover': { bgcolor: '#2B2318' },
+                '&.Mui-disabled': { bgcolor: '#ccc' }
+              }}
+            >
+              <SendIcon fontSize="small" />
+            </IconButton>
+          </InputArea>
+        </>
+      )}
+    </>
+  );
+
+  if (isPage) {
+    return <PageShell>{chatContent}</PageShell>;
+  }
+
   return (
     <>
       <IconButton
@@ -199,148 +380,7 @@ export default function AdvisorChat({ isOpenExternal, onCloseExternal, onOpenExt
 
       <Fade in={isOpen}>
         <ChatProvider elevation={0}>
-          <ChatHeader>
-            <Box sx={{ display: 'flex', gap: 0.5 }}>
-              <IconButton size="small" onClick={() => setIsOpen(false)} sx={{ color: 'white' }}>
-                <CloseIcon fontSize="small" />
-              </IconButton>
-              {messages.length > 0 && (
-                <IconButton
-                  size="small"
-                  onClick={resetChat}
-                  sx={{ color: 'white', opacity: 0.8, '&:hover': { opacity: 1 } }}
-                  title="Clear conversation"
-                >
-                  <DeleteSweepIcon fontSize="small" />
-                </IconButton>
-              )}
-            </Box>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, textAlign: 'right' }}>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
-                  Hair Advisor
-                </Typography>
-                <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>
-                  Ask Emerson
-                </Typography>
-              </Box>
-              <Avatar sx={{ bgcolor: '#8B7355', width: 32, height: 32 }}>
-                <SmartToyIcon fontSize="small" />
-              </Avatar>
-            </Box>
-          </ChatHeader>
-
-          {pendingClarification ? (
-            <ClarificationPanel>
-              <Typography variant="body1" sx={{ fontWeight: 600, color: '#2B2318' }}>
-                {pendingClarification.question}
-              </Typography>
-              <RadioGroup
-                key={pendingClarification.question}
-                value={selectedOption}
-                onChange={(e) => setSelectedOption(e.target.value)}
-              >
-                {(pendingClarification.options || []).map((opt, i) => (
-                  <FormControlLabel
-                    key={i}
-                    value={opt.label}
-                    control={<Radio sx={{ color: '#4A3D2D', '&.Mui-checked': { color: '#4A3D2D' } }} />}
-                    label={opt.label}
-                  />
-                ))}
-              </RadioGroup>
-              <Button
-                variant="contained"
-                onClick={handleSubmitClarification}
-                disabled={!selectedOption || isLoading}
-                fullWidth
-                sx={{
-                  mt: 'auto',
-                  bgcolor: '#4A3D2D',
-                  borderRadius: '12px',
-                  py: 1.5,
-                  '&:hover': { bgcolor: '#2B2318' }
-                }}
-              >
-                That sounds right
-              </Button>
-            </ClarificationPanel>
-          ) : (
-            <>
-              <MessageList ref={scrollRef}>
-                {messages.length === 0 && (
-                  <MessageBubble isUser={false}>
-                    Hi! Tell me what&apos;s going on with your hair and I&apos;ll help you work through it.
-                  </MessageBubble>
-                )}
-                {messages.map((msg, i) => (
-                  <React.Fragment key={msg.id || i}>
-                    <MessageBubble isUser={msg.role === 'user'}>
-                      {msg.content}
-                    </MessageBubble>
-                    {msg.products?.length > 0 && (
-                      <ProductRow>
-                        {msg.products.map((p) => (
-                          <ProductCard key={p.id} elevation={0}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#2B2318', lineHeight: 1.3 }}>
-                              {p.name}
-                            </Typography>
-                            {p.brand && (
-                              <Typography variant="caption" sx={{ color: '#8B7355' }}>
-                                {p.brand}
-                              </Typography>
-                            )}
-                            {(p.category || p.primary_focus) && (
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                {[p.category, p.primary_focus].filter(Boolean).join(' · ')}
-                              </Typography>
-                            )}
-                          </ProductCard>
-                        ))}
-                      </ProductRow>
-                    )}
-                  </React.Fragment>
-                ))}
-                {isLoading && (
-                  <Box sx={{ alignSelf: 'flex-start', ml: 1 }}>
-                    <CircularProgress size={16} sx={{ color: '#4A3D2D' }} />
-                  </Box>
-                )}
-              </MessageList>
-
-              <InputArea>
-                <TextField
-                  id="advisor-chat-input"
-                  fullWidth
-                  size="small"
-                  placeholder="Tell me about your hair..."
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                  variant="outlined"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '12px',
-                      background: 'white'
-                    }
-                  }}
-                />
-                <IconButton
-                  onClick={handleSend}
-                  disabled={!inputText.trim() || isLoading}
-                  sx={{
-                    bgcolor: '#4A3D2D',
-                    color: 'white',
-                    '&:hover': { bgcolor: '#2B2318' },
-                    '&.Mui-disabled': { bgcolor: '#ccc' }
-                  }}
-                >
-                  <SendIcon fontSize="small" />
-                </IconButton>
-              </InputArea>
-            </>
-          )}
+          {chatContent}
         </ChatProvider>
       </Fade>
     </>

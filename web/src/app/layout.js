@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "Concierge By Emerson",
+  title: "Concierge by Emerson",
   description:
     "This app helps you find the best hair care routine, and products for you.",
   manifest: "/manifest.json",

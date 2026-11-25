@@ -29,6 +29,8 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import NorthEastIcon from "@mui/icons-material/NorthEast";
 import { typographyStyles } from "../styles/typographyStyles";
+import { ADVISOR_ONLY } from "@/config/features";
+import AdvisorHome from "@/components/advisor/AdvisorHome";
 
 const DARK_GREEN = "#2D5A4A";
 const MEDIUM_GREEN = "#426A5B";
@@ -36,7 +38,7 @@ const SAGE_GREEN = "#95ABA1";
 const SAND_GOLD = "#FFD97B"; // Updated to vibrant gold for maximum contrast
 const LIGHT_BG = "#FDFCF9";
 
-export default function LandingPage() {
+function LandingPage() {
   const router = useRouter();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -443,4 +445,9 @@ export default function LandingPage() {
       </Box>
     </Box>
   );
+}
+
+// In advisor-only mode, the home page is the advisor chat (see src/config/features.js).
+export default function HomePage() {
+  return ADVISOR_ONLY ? <AdvisorHome /> : <LandingPage />;
 }
