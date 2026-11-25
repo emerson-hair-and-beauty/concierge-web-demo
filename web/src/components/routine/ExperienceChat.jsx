@@ -283,10 +283,11 @@ export default function ExperienceChat({ isOpenExternal, onCloseExternal, onOpen
               </MessageList>
 
               <InputArea>
-                <TextField 
-                  fullWidth 
-                  size="small" 
-                  placeholder="Tell me how it feels..." 
+                <TextField
+                  id="experience-chat-input"
+                  fullWidth
+                  size="small"
+                  placeholder="Tell me how it feels..."
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
