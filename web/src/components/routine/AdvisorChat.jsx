@@ -11,9 +11,6 @@ import {
   CircularProgress,
   Avatar,
   Backdrop,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
 } from '@mui/material';
 import SpaIcon from '@mui/icons-material/Spa';
 import CloseIcon from '@mui/icons-material/Close';
@@ -124,13 +121,13 @@ const ProductCard = styled(Paper)({
   gap: '4px',
 });
 
-const ClarificationPanel = styled(Box)({
-  padding: '24px',
+// The options of a clarification question. One tap sends the option.
+const OptionRow = styled(Box)({
   display: 'flex',
-  flexDirection: 'column',
-  gap: '16px',
-  height: '100%',
-  overflowY: 'auto',
+  flexWrap: 'wrap',
+  gap: '8px',
+  alignSelf: 'flex-start',
+  maxWidth: '85%',
 });
 
 // variant="floating" (default): a button in the corner opens a panel.
@@ -145,7 +142,6 @@ export default function AdvisorChat({
   const isPage = variant === 'page';
   const [internalOpen, setInternalOpen] = useState(false);
   const [inputText, setInputText] = useState('');
-  const [selectedOption, setSelectedOption] = useState('');
 
   const isOpen = isOpenExternal !== undefined ? isOpenExternal : internalOpen;
   const setIsOpen = (val) => {
@@ -170,18 +166,12 @@ export default function AdvisorChat({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isLoading]);
+  }, [messages, isLoading, pendingClarification]);
 
   const handleSend = () => {
     if (!inputText.trim()) return;
     sendMessage(inputText);
     setInputText('');
-  };
-
-  const handleSubmitClarification = () => {
-    if (!selectedOption) return;
-    answerClarification(selectedOption);
-    setSelectedOption('');
   };
 
   const chatContent = (
@@ -226,42 +216,6 @@ export default function AdvisorChat({
         </Box>
       </ChatHeader>
 
-      {pendingClarification ? (
-        <ClarificationPanel>
-          <Typography variant="body1" sx={{ fontWeight: 600, color: '#2B2318' }}>
-            {pendingClarification.question}
-          </Typography>
-          <RadioGroup
-            key={pendingClarification.question}
-            value={selectedOption}
-            onChange={(e) => setSelectedOption(e.target.value)}
-          >
-            {(pendingClarification.options || []).map((opt, i) => (
-              <FormControlLabel
-                key={i}
-                value={opt.label}
-                control={<Radio sx={{ color: '#4A3D2D', '&.Mui-checked': { color: '#4A3D2D' } }} />}
-                label={opt.label}
-              />
-            ))}
-          </RadioGroup>
-          <Button
-            variant="contained"
-            onClick={handleSubmitClarification}
-            disabled={!selectedOption || isLoading}
-            fullWidth
-            sx={{
-              mt: 'auto',
-              bgcolor: '#4A3D2D',
-              borderRadius: '12px',
-              py: 1.5,
-              '&:hover': { bgcolor: '#2B2318' }
-            }}
-          >
-            That sounds right
-          </Button>
-        </ClarificationPanel>
-      ) : (
         <>
           <MessageList ref={scrollRef}>
             {messages.length === 0 && (
@@ -297,6 +251,29 @@ export default function AdvisorChat({
                 )}
               </React.Fragment>
             ))}
+            {pendingClarification && !isLoading && (
+              <OptionRow>
+                {(pendingClarification.options || []).map((opt, i) => (
+                  <Button
+                    key={i}
+                    variant="outlined"
+                    size="small"
+                    onClick={() => answerClarification(opt.label)}
+                    sx={{
+                      textTransform: 'none',
+                      textAlign: 'left',
+                      borderRadius: '14px',
+                      borderColor: 'rgba(74, 61, 45, 0.35)',
+                      color: '#4A3D2D',
+                      background: 'white',
+                      '&:hover': { borderColor: '#4A3D2D', background: 'rgba(74, 61, 45, 0.06)' },
+                    }}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </OptionRow>
+            )}
             {isLoading && (
               <Box sx={{ alignSelf: 'flex-start', ml: 1 }}>
                 <CircularProgress size={16} sx={{ color: '#4A3D2D' }} />
@@ -309,7 +286,7 @@ export default function AdvisorChat({
               id="advisor-chat-input"
               fullWidth
               size="small"
-              placeholder="Tell me about your hair..."
+              placeholder={pendingClarification ? "Or type your own answer..." : "Tell me about your hair..."}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
@@ -335,7 +312,6 @@ export default function AdvisorChat({
             </IconButton>
           </InputArea>
         </>
-      )}
     </>
   );
 

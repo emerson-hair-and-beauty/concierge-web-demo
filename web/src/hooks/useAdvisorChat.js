@@ -78,6 +78,12 @@ export const useAdvisorChat = (userId) => {
           }
 
           if (event.type === 'clarification') {
+            // The question also goes into the history, so it stays visible
+            // after the user answers it.
+            const question = event.content?.question;
+            if (question) {
+              setMessages((prev) => [...prev, { role: 'assistant', content: question }]);
+            }
             setPendingClarification(event.content);
           } else if (event.type === 'products') {
             turnProducts = event.content || [];
