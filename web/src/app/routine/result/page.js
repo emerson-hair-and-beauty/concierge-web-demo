@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useSyncExternalStore } from "react";
 import CustomRoutine from "@/components/custom-routine/CustomRoutine";
 import ExperienceChat from "@/components/routine/ExperienceChat";
 import TerminalUI from "@/components/onboarding/TerminalUI";
+import GenerationProgress from "@/components/routine/GenerationProgress";
 import useOnboardingStore from "@/hooks/useOnboardingStore";
 import { Container, Box, Typography, LinearProgress, Paper, Fade, Button, Tooltip } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -36,33 +37,27 @@ const ThinkingBox = styled(Paper)(({ theme }) => ({
   animation: `${pulse} 3s infinite ease-in-out`,
 }));
 
+const noopSubscribe = () => () => {};
+
 export default function RoutineResult() {
   const selections = useOnboardingStore((s) => s.selections) || {};
   const generateRoutine = useOnboardingStore((s) => s.generateRoutine);
   const clearRoutine = useOnboardingStore((s) => s.clearRoutine);
-  const [progress, setProgress] = useState(0);
+  // The terminal view is only for debugging: add ?debug=1 to the URL.
+  // The server render and the first client render both use false.
+  const showDebug = useSyncExternalStore(
+    noopSubscribe,
+    () => new URLSearchParams(window.location.search).has("debug"),
+    () => false
+  );
   const isDev = process.env.NODE_ENV === "development";
   
-  const { apiRoutine, isGeneratingRoutine, thinkingText, generationError } = selections;
+  const { apiRoutine, isGeneratingRoutine, thinkingText, generationError, generationStage } = selections;
 
   useEffect(() => {
     console.log("RoutineResult State Update:", { isGeneratingRoutine, thinkingText: thinkingText?.length, hasRoutine: !!apiRoutine, error: generationError });
   }, [isGeneratingRoutine, thinkingText, apiRoutine, generationError]);
 
-  useEffect(() => {
-    let timer;
-    if (isGeneratingRoutine) {
-      timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) return 0;
-          return prev + (100 / 300);
-        });
-      }, 100);
-    } else {
-      setProgress(0);
-    }
-    return () => clearInterval(timer);
-  }, [isGeneratingRoutine]);
 
   if (generationError) {
     return (
@@ -144,43 +139,20 @@ export default function RoutineResult() {
       }}>
         <Fade in={true} timeout={1000}>
           <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-            <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant="h4" sx={{ 
-                    fontWeight: 800, 
-                    mb: 1, 
-                    color: '#2D5A4A',
-                    letterSpacing: '-0.02em',
-                }}>
-                    Building your routine...
-                </Typography>
-                <Typography variant="body1" sx={{ color: '#8BA198', maxWidth: '600px', mx: 'auto' }}>
-                    Hold tight. Our AI is analyzing your curls, checking the local weather in {selections.location}, and searching for the perfect products for you.
-                </Typography>
-            </Box>
-
-            <TerminalUI 
-                logs={selections.debugLogs || []} 
-                currentThinking={thinkingText} 
-            />
-
-            <Box sx={{ width: '100%', maxWidth: '700px', mt: 2 }}>
-              <LinearProgress 
-                variant="determinate" 
-                value={progress} 
-                sx={{ 
-                    height: 6, 
-                    borderRadius: 3,
-                    backgroundColor: 'rgba(45, 90, 74, 0.1)',
-                    '& .MuiLinearProgress-bar': {
-                        borderRadius: 3,
-                        backgroundColor: '#2D5A4A',
-                    }
-                }} 
-              />
-              <Typography variant="caption" sx={{ mt: 1.5, display: 'block', color: '#8BA198', letterSpacing: 2, textAlign: 'center', fontWeight: 600 }}>
-                  ESTIMATED TIME REMAINING: {Math.max(0, Math.ceil(30 - (progress * 30 / 100)))}S
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 800, mb: 1, color: '#2D5A4A', letterSpacing: '-0.02em' }}>
+                Building your routine
+              </Typography>
+              <Typography variant="body1" sx={{ color: '#8BA198' }}>
+                This can take a minute.
               </Typography>
             </Box>
+
+            <GenerationProgress stage={generationStage} location={selections.location} />
+
+            {showDebug && (
+              <TerminalUI logs={selections.debugLogs || []} currentThinking={thinkingText} />
+            )}
           </Box>
         </Fade>
       </Container>
@@ -193,7 +165,7 @@ export default function RoutineResult() {
         <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
           <LinearProgress sx={{ width: 40, height: 4, borderRadius: 2 }} />
           <Typography variant="caption" sx={{ color: '#2D5A4A', fontWeight: 600, letterSpacing: 1 }}>
-            UPDATING RECOMMENDATIONS...
+            Finding products for each step...
           </Typography>
         </Box>
       )}

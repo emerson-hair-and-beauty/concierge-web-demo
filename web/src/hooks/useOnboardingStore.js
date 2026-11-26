@@ -101,6 +101,8 @@ const initialSelections = {
 
   apiRoutine: null,
   isGeneratingRoutine: false,
+  // The routine generation stage: "profile" | "routine" | "products" | null.
+  generationStage: null,
   thinkingText: "",
   generationError: null,
   debugLogs: [],
@@ -122,6 +124,7 @@ const useOnboardingStore = create(
         selections: {
           ...state.selections,
           apiRoutine: null,
+          generationStage: null,
           generationError: null,
           debugLogs: [],
           thinkingText: ""
@@ -230,6 +233,7 @@ const useOnboardingStore = create(
           selections: { 
             ...state.selections, 
             isGeneratingRoutine: true,
+            generationStage: "profile",
             generationError: null,
             thinkingText: "Connecting to concierge orchestrator...",
             debugLogs: ["Requested routine generation..."]
@@ -305,6 +309,16 @@ const useOnboardingStore = create(
                     }
                   }));
                   
+                  // 0. Track the stage for the progress screen. The backend
+                  // sends "strategy" when it has read the profile and the
+                  // climate. Routine text then follows.
+                  if (
+                    (data.type === 'strategy' || data.type === 'content') &&
+                    get().selections.generationStage === 'profile'
+                  ) {
+                    set((state) => ({ selections: { ...state.selections, generationStage: 'routine' } }));
+                  }
+
                   // 1. Handle Thinking/Reasoning
                   const thought = data.thought || data.reasoning;
                   if (thought) {
@@ -342,6 +356,7 @@ const useOnboardingStore = create(
                             selections: {
                               ...state.selections,
                               apiRoutine: transformed,
+                              generationStage: "products",
                               thinkingText: "Routine generated. Now finding products..."
                             }
                           }));
