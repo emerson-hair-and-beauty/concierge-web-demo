@@ -53,7 +53,7 @@ export default function AdvisorHome() {
     >
       <SpaIcon sx={{ fontSize: 56, color: BROWN, mb: 2 }} />
       <Typography variant="h4" sx={{ fontWeight: 800, color: "#2B2318", mb: 1 }}>
-        Concierge by Emerson
+        Curl Concierge
       </Typography>
       <Typography variant="body1" sx={{ color: "text.secondary", mb: 4, maxWidth: 420 }}>
         Tell me what&apos;s going on with your hair, and I&apos;ll help you work through it.

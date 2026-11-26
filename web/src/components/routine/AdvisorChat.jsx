@@ -204,10 +204,10 @@ export default function AdvisorChat({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, textAlign: 'right' }}>
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
-              Concierge by Emerson
+              Curl Concierge
             </Typography>
             <Typography variant="caption" sx={{ opacity: 0.8, display: 'block' }}>
-              Ask Concierge
+              by Emerson
             </Typography>
           </Box>
           <Avatar sx={{ bgcolor: '#8B7355', width: 32, height: 32 }}>

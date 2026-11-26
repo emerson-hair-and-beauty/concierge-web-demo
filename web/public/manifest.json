@@ -1,6 +1,6 @@
 {
-  "name": "Concierge: Your Hair Companion",
-  "short_name": "Concierge",
+  "name": "Curl Concierge",
+  "short_name": "Curl Concierge",
   "description": "AI-powered personalized hair care companion with real-time recommendations",
   "start_url": "/routine/summary",
   "scope": "/",
