@@ -18,6 +18,7 @@ import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import { styled } from '@mui/material/styles';
 import { useAdvisorChat } from '@/hooks/useAdvisorChat';
 import { useUserData } from '@/hooks/useUserData';
@@ -112,13 +113,26 @@ const ProductRow = styled(Box)({
 
 const ProductCard = styled(Paper)({
   flex: '0 0 180px',
-  padding: '12px 14px',
   borderRadius: '14px',
   border: '1px solid rgba(74, 61, 45, 0.15)',
   background: 'white',
   display: 'flex',
   flexDirection: 'column',
-  gap: '4px',
+  overflow: 'hidden',
+  color: 'inherit',
+  textDecoration: 'none',
+  'a&': { cursor: 'pointer', transition: 'border-color 0.2s ease' },
+  'a&:hover': { borderColor: '#4A3D2D' },
+});
+
+const ProductImage = styled(Box)({
+  height: '140px',
+  background: 'rgba(74, 61, 45, 0.06)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'rgba(74, 61, 45, 0.35)',
+  '& img': { width: '100%', height: '100%', objectFit: 'contain' },
 });
 
 // The options of a clarification question. One tap sends the option.
@@ -155,6 +169,8 @@ export default function AdvisorChat({
     messages,
     isLoading,
     pendingClarification,
+    statusText,
+    awaitingReply,
     sendMessage,
     answerClarification,
     resetChat,
@@ -166,7 +182,7 @@ export default function AdvisorChat({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, isLoading, pendingClarification]);
+  }, [messages, isLoading, pendingClarification, statusText]);
 
   const handleSend = () => {
     if (!inputText.trim()) return;
@@ -231,7 +247,24 @@ export default function AdvisorChat({
                 {msg.products?.length > 0 && (
                   <ProductRow>
                     {msg.products.map((p) => (
-                      <ProductCard key={p.id} elevation={0}>
+                      // A card with a url opens the shop page in a new tab.
+                      // A card without a url is not clickable.
+                      <ProductCard
+                        key={p.id}
+                        elevation={0}
+                        {...(p.url
+                          ? { component: 'a', href: p.url, target: '_blank', rel: 'noopener noreferrer' }
+                          : {})}
+                      >
+                        <ProductImage>
+                          {p.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={p.image} alt={p.name} loading="lazy" />
+                          ) : (
+                            <ImageOutlinedIcon fontSize="large" />
+                          )}
+                        </ProductImage>
+                        <Box sx={{ p: '10px 14px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#2B2318', lineHeight: 1.3 }}>
                           {p.name}
                         </Typography>
@@ -245,6 +278,7 @@ export default function AdvisorChat({
                             {[p.category, p.primary_focus].filter(Boolean).join(' · ')}
                           </Typography>
                         )}
+                        </Box>
                       </ProductCard>
                     ))}
                   </ProductRow>
@@ -274,9 +308,15 @@ export default function AdvisorChat({
                 ))}
               </OptionRow>
             )}
-            {isLoading && (
-              <Box sx={{ alignSelf: 'flex-start', ml: 1 }}>
+            {/* The progress line shows the last status until the first reply text arrives. */}
+            {isLoading && awaitingReply && (
+              <Box sx={{ alignSelf: 'flex-start', ml: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CircularProgress size={16} sx={{ color: '#4A3D2D' }} />
+                {statusText && (
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                    {statusText}
+                  </Typography>
+                )}
               </Box>
             )}
           </MessageList>

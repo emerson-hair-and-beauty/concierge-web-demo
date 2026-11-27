@@ -21,6 +21,10 @@ export const useAdvisorChat = (userId) => {
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [pendingClarification, setPendingClarification] = useState(null);
+  // The last `status` text. It shows until the first reply text arrives.
+  const [statusText, setStatusText] = useState('');
+  // True from the send until the first reply text, question, or error arrives.
+  const [awaitingReply, setAwaitingReply] = useState(false);
   const bufferRef = useRef('');
 
   useEffect(() => {
@@ -33,6 +37,8 @@ export const useAdvisorChat = (userId) => {
     setMessages((prev) => [...prev, { role: 'user', content: text }]);
     setPendingClarification(null);
     setIsLoading(true);
+    setStatusText('');
+    setAwaitingReply(true);
 
     // Content chunks append to one reply, found by id. The updater must stay
     // pure: React Strict Mode runs it twice.
@@ -77,7 +83,10 @@ export const useAdvisorChat = (userId) => {
             continue; // a partial/malformed line; skip rather than crash the chat
           }
 
-          if (event.type === 'clarification') {
+          if (event.type === 'status') {
+            if (typeof event.content === 'string') setStatusText(event.content);
+          } else if (event.type === 'clarification') {
+            setAwaitingReply(false);
             // The question also goes into the history, so it stays visible
             // after the user answers it.
             const question = event.content?.question;
@@ -88,8 +97,10 @@ export const useAdvisorChat = (userId) => {
           } else if (event.type === 'products') {
             turnProducts = event.content || [];
           } else if (event.type === 'error') {
+            setAwaitingReply(false);
             setMessages((prev) => [...prev, { role: 'assistant', content: event.content }]);
           } else if (event.type === 'content' && event.content) {
+            setAwaitingReply(false);
             setMessages((prev) => {
               const i = prev.findIndex((m) => m.id === replyId);
               if (i === -1) {
@@ -100,12 +111,12 @@ export const useAdvisorChat = (userId) => {
               return next;
             });
           }
-          // `status` / `strategy` / `delivery_plan` events are diagnostic only
-          // for now — nothing in the UI reads them yet.
+          // The UI ignores the other types (`thesis`, `strategy`,
+          // `delivery_plan`, `token_usage`, `tone`). They are for internal tests.
         }
       }
 
-      // Products arrive before the reply text, so attach them once it exists.
+      // The products event comes after the reply text. Attach the cards to the reply.
       if (turnProducts.length) {
         setMessages((prev) =>
           prev.map((m) => (m.id === replyId ? { ...m, products: turnProducts } : m))
@@ -116,6 +127,8 @@ export const useAdvisorChat = (userId) => {
       setMessages((prev) => [...prev, { role: 'assistant', content: "Sorry, I'm having trouble connecting right now." }]);
     } finally {
       setIsLoading(false);
+      setAwaitingReply(false);
+      setStatusText('');
     }
   }, [sessionId, userId]);
 
@@ -130,12 +143,16 @@ export const useAdvisorChat = (userId) => {
     setSessionId(generateUUID());
     setMessages([]);
     setPendingClarification(null);
+    setStatusText('');
+    setAwaitingReply(false);
   }, []);
 
   return {
     messages,
     isLoading,
     pendingClarification,
+    statusText,
+    awaitingReply,
     sendMessage,
     answerClarification,
     resetChat,
